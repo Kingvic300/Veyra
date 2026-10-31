@@ -26,7 +26,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       if (mode === 'register') await api.auth.register({ email, password, name: String(form.get('name')) });
       else await api.auth.login({ email, password });
       await qc.invalidateQueries({ queryKey: keys.me });
-      router.replace('/');
+      router.replace('/app');
     } catch (err) {
       setError(errorMessage(err));
     } finally {

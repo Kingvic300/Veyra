@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Spinner } from '@/components/ui';
+import { BrandLoader } from '@/components/loading';
 import { api } from '@/lib/api';
 import { keys, useMe } from '@/lib/hooks';
 
@@ -18,9 +18,5 @@ export default function Home() {
     else if (orgs.data) router.replace(orgs.data[0] ? `/o/${orgs.data[0].id}` : '/onboarding');
   }, [me.isError, orgs.data, router]);
 
-  return (
-    <main className="flex min-h-dvh items-center justify-center">
-      <Spinner label="Opening Veyra" />
-    </main>
-  );
+  return <BrandLoader label="Opening your organisation" />;
 }
