@@ -8,33 +8,8 @@ import { Button, Notice, PageHeader, Panel, Spinner } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { date, shortHash } from '@/lib/format';
 import { keys, useOrg } from '@/lib/hooks';
+import { ACTION_COPY } from '@/lib/audit-copy';
 
-const ACTION_COPY: Record<string, string> = {
-  'organisation.created': 'Organisation created',
-  'organisation.updated': 'Settings changed',
-  'member.added': 'Teammate added',
-  'member.updated': 'Teammate updated',
-  'member.removed': 'Teammate removed',
-  'contractor.created': 'Contractor added',
-  'contractor.updated': 'Contractor updated',
-  'contractor.archived': 'Contractor archived',
-  'batch.created': 'Batch drafted',
-  'batch.updated': 'Draft edited',
-  'batch.submitted': 'Sent for approval',
-  'batch.proposal_recorded': 'On-chain registration sent',
-  'batch.proposal_confirmed': 'Registered on-chain',
-  'batch.proposal_failed': 'On-chain registration failed',
-  'approval.recorded': 'Approval given',
-  'approval.confirmed': 'Approval confirmed',
-  'approval.failed': 'Approval failed',
-  'batch.approved': 'Batch fully approved',
-  'execution.submitted': 'Payment sent',
-  'execution.confirmed': 'Payment settled',
-  'execution.failed': 'Payment failed',
-  'batch.completed': 'Batch paid',
-  'batch.cancelled': 'Batch cancelled',
-  'receipt.exported': 'Receipt viewed',
-};
 
 const PAGE = 50;
 
