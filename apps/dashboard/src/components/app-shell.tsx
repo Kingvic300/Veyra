@@ -10,7 +10,8 @@ import { api } from '@/lib/api';
 import { networkLabel } from '@/lib/format';
 import { keys, useMe, useOrg } from '@/lib/hooks';
 import { Logo } from './logo';
-import { Spinner } from './ui';
+import { SkeletonShell } from './loading';
+import { NotificationBell } from './notification-bell';
 import { WalletButton } from './wallet-button';
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -32,13 +33,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [me.isError, router]);
   useEffect(() => setMenuOpen(false), [pathname]);
 
-  if (me.isLoading || org.isLoading) return <Spinner label="Loading organisation" />;
+  if (me.isLoading || org.isLoading) return <SkeletonShell />;
   if (org.isError || !org.data) {
     return (
       <main className="mx-auto max-w-lg px-6 py-24">
         <h1 className="text-2xl font-semibold">Organisation not found</h1>
         <p className="mt-2 text-ink-soft">It does not exist or you are not a member.</p>
-        <Link href="/" className="mt-6 inline-block font-medium text-settle">
+        <Link href="/app" className="mt-6 inline-block font-medium text-settle">
           Go to your organisations
         </Link>
       </main>
@@ -62,6 +63,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link href={base}>
           <Logo />
         </Link>
+        <div className="hidden lg:block">
+          <NotificationBell />
+        </div>
         <button type="button" className="lg:hidden" onClick={() => setMenuOpen(false)} aria-label="Close menu">
           <X className="size-5" />
         </button>
@@ -146,11 +150,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="min-w-0">
         <header className="no-print flex items-center justify-between border-b border-line bg-surface px-5 py-3 lg:hidden">
           <Logo />
-          <button type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu">
-            <Menu className="size-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu" className="p-2">
+              <Menu className="size-5" />
+            </button>
+          </div>
         </header>
-        <main className="mx-auto max-w-[1120px] px-5 py-8 sm:px-8 lg:py-12">{children}</main>
+        <main className="w-full px-5 py-8 sm:px-8 lg:px-12 lg:py-10">{children}</main>
       </div>
     </div>
   );
