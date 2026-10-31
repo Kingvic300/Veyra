@@ -1,10 +1,12 @@
 'use client';
 
-import { Wallet } from 'lucide-react';
+import { ChevronDown, LogOut, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { shortHash } from '@/lib/format';
+import { sameAddress } from '@/lib/wallet';
+import { PopoverPanel, usePopover } from './popover';
 import { useWallet } from './providers';
-import { Button, Dialog, Notice } from './ui';
+import { Button, Dialog, Hash, Notice } from './ui';
 
 export function WalletPicker({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { options, connect, connecting, error } = useWallet();
@@ -12,11 +14,7 @@ export function WalletPicker({ open, onClose }: { open: boolean; onClose: () => 
     <Dialog open={open} onClose={onClose} title="Connect a Starknet wallet">
       <p className="text-sm text-ink-soft">Your wallet shows every transaction before you sign. Veyra never holds your keys.</p>
       <div className="mt-5 flex flex-col gap-2">
-        {options.length === 0 && (
-          <Notice>
-            No Starknet wallet found in this browser. Install Ready or Braavos, then reload the page.
-          </Notice>
-        )}
+        {options.length === 0 && <Notice>No Starknet wallet found in this browser. Install Ready or Braavos, then reload the page.</Notice>}
         {options.map((o) => (
           <button
             key={o.id}
@@ -38,32 +36,61 @@ export function WalletPicker({ open, onClose }: { open: boolean; onClose: () => 
   );
 }
 
+/** Top-bar wallet control: connect button, or a chip with a details popover. */
 export function WalletButton({ expected }: { expected?: string | null }) {
   const { wallet, disconnect } = useWallet();
-  const [open, setOpen] = useState(false);
+  const [picker, setPicker] = useState(false);
+  const { open, setOpen, ref } = usePopover();
+
   if (!wallet) {
     return (
       <>
-        <Button variant="secondary" size="sm" icon={<Wallet className="size-4" />} onClick={() => setOpen(true)} className="w-full">
+        <Button variant="secondary" size="sm" icon={<Wallet className="size-4" />} onClick={() => setPicker(true)} className="h-9">
           Connect wallet
         </Button>
-        <WalletPicker open={open} onClose={() => setOpen(false)} />
+        <WalletPicker open={picker} onClose={() => setPicker(false)} />
       </>
     );
   }
-  const mismatch = expected && BigInt(expected) !== BigInt(wallet.address);
+  const mismatch = !!expected && !sameAddress(expected, wallet.address);
   return (
-    <div className="flex items-center gap-2 rounded-control border border-line bg-surface px-2.5 py-2">
-      <span className={`size-2 rounded-full ${mismatch ? 'bg-pending' : 'bg-settle'}`} aria-hidden />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-mono text-[12.5px]" title={wallet.address}>
-          {shortHash(wallet.address)}
-        </span>
-        <span className="block text-[11.5px] text-ink-faint">{mismatch ? 'Not your linked wallet' : wallet.name}</span>
-      </span>
-      <button type="button" onClick={disconnect} className="text-[12px] text-ink-faint hover:text-ink">
-        Disconnect
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="flex h-9 items-center gap-2 rounded-full border border-line bg-surface pl-1.5 pr-3 text-[13px] hover:border-line-strong"
+      >
+        {wallet.icon ? <img src={wallet.icon} alt="" className="size-6 rounded-full" /> : <span className="flex size-6 items-center justify-center rounded-full bg-wash"><Wallet className="size-3.5" /></span>}
+        <span className="font-mono">{shortHash(wallet.address)}</span>
+        <span className={`size-1.5 rounded-full ${mismatch ? 'bg-pending' : 'bg-settle'}`} aria-hidden />
+        <ChevronDown className="size-3.5 text-ink-faint" aria-hidden />
       </button>
+      {open && (
+        <PopoverPanel className="right-0 top-11 w-80">
+          <div className="p-4">
+            <p className="text-[12.5px] text-ink-faint">Connected with {wallet.name}</p>
+            <Hash value={wallet.address} className="mt-2" />
+            {mismatch ? (
+              <p className="mt-3 text-[13px] text-pending">This is not the wallet linked to your membership. On-chain approvals from it will not count.</p>
+            ) : expected ? (
+              <p className="mt-3 text-[13px] text-settle-strong">Linked to your membership.</p>
+            ) : (
+              <p className="mt-3 text-[13px] text-ink-soft">Link it on the Team page to approve on-chain.</p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              disconnect();
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2 border-t border-line px-4 py-3 text-sm text-ink-soft hover:bg-wash hover:text-ink"
+          >
+            <LogOut className="size-4" /> Disconnect wallet
+          </button>
+        </PopoverPanel>
+      )}
     </div>
   );
 }
