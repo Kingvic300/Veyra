@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api, errorMessage } from '@/lib/api';
 import { keys } from '@/lib/hooks';
 import { Logo } from './logo';
+import { HeroVisual } from './marketing/hero-visual';
 import { Button, Field, Input, Notice } from './ui';
 
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
@@ -36,31 +37,19 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
 
   return (
     <main className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
-      <section className="block-grid relative hidden flex-col justify-between border-r border-line bg-paper p-12 lg:flex">
+      <section className="block-grid relative hidden flex-col border-r border-line bg-[#f4f7f5] p-12 lg:flex">
         <Link href="/" aria-label="Veyra home">
           <Logo />
         </Link>
-        <div className="max-w-[30rem]">
-          <p className="text-[34px] font-semibold leading-[1.12] tracking-[-0.02em]">
+        <div className="my-auto w-full max-w-[600px] self-center py-10">
+          <p className="max-w-[24ch] text-[30px] font-semibold leading-[1.15] tracking-[-0.02em]">
             Pay your team on-chain. Keep every salary between you and them.
           </p>
-          <p className="mt-5 max-w-[42ch] text-ink-soft">
-            Build a payroll batch, collect approvals from the people who sign off on money, settle it on Starknet and keep a receipt
-            anyone can check.
-          </p>
+          <div className="mt-10">
+            <HeroVisual />
+          </div>
         </div>
-        <ul className="grid max-w-[30rem] grid-cols-3 gap-px overflow-hidden rounded-panel border border-line bg-line text-[13px]">
-          {[
-            ['Approvals', 'enforced by the vault contract'],
-            ['Records', 'encrypted at rest'],
-            ['Receipts', 'verified against chain events'],
-          ].map(([a, b]) => (
-            <li key={a} className="bg-surface p-4">
-              <p className="font-semibold">{a}</p>
-              <p className="mt-1 text-ink-soft">{b}</p>
-            </li>
-          ))}
-        </ul>
+        <p className="text-[13px] text-ink-faint">Open source under the Apache License 2.0. Veyra never holds your funds or keys.</p>
       </section>
 
       <section className="flex items-center justify-center px-6 py-16">
