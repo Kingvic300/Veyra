@@ -61,11 +61,52 @@ const COMPARISON: [string, string, string][] = [
 ];
 
 const AUDIENCES = [
-  ['Software agencies', 'Monthly contractor runs across many countries, without a spreadsheet of wallet addresses.'],
-  ['Remote-first startups', 'Pay a distributed team in stablecoins with the same approvals you use for any other spend.'],
-  ['Web3 teams and DAOs', 'Contributor payments and grants released only when the right people sign.'],
-  ['African businesses', 'Built in Lagos for cross-border contractor payments where banking rails are slow or expensive.'],
+  {
+    icon: Code2,
+    title: 'Software agencies',
+    body: 'Monthly contractor runs across many countries, without a spreadsheet of wallet addresses.',
+    setup: [
+      ['Pays', 'Monthly'],
+      ['People', '10 to 60 contractors'],
+      ['Approvals', 'Finance lead and a director'],
+      ['Asset', 'USDC'],
+    ],
+  },
+  {
+    icon: Users,
+    title: 'Remote-first startups',
+    body: 'Pay a distributed team in stablecoins with the same approvals you use for any other spend.',
+    setup: [
+      ['Pays', 'Monthly or twice a month'],
+      ['People', 'Employees and contractors'],
+      ['Approvals', '2 of 3 founders'],
+      ['Asset', 'USDC'],
+    ],
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Web3 teams and DAOs',
+    body: 'Contributor payments and grants released only when the right people sign.',
+    setup: [
+      ['Pays', 'Per milestone or epoch'],
+      ['People', 'Contributors and grantees'],
+      ['Approvals', 'Council wallets, on-chain'],
+      ['Asset', 'USDC or STRK'],
+    ],
+  },
+  {
+    icon: Building2,
+    title: 'African businesses',
+    body: 'Built in Lagos for cross-border contractor payments where banking rails are slow or expensive.',
+    setup: [
+      ['Pays', 'Monthly'],
+      ['People', 'Teams across Nigeria, Ghana, Kenya and beyond'],
+      ['Approvals', 'Owner plus finance'],
+      ['Asset', 'USDC'],
+    ],
+  },
 ];
+
 
 const NETWORKS = [
   { name: 'Starknet', state: 'Available', note: 'PayrollVault contract, STRK20 private transfers in preview' },
@@ -204,7 +245,7 @@ export default function LandingPage() {
       </section>
 
       {/* Honest privacy */}
-      <section className="border-y border-line bg-[#f4f7f5]">
+      <section className="border-t border-line">
         <div className="w-full grid gap-12 px-5 py-24 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_1.3fr]">
           <div>
             <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.025em]">We tell you exactly what is public</h2>
@@ -246,15 +287,34 @@ export default function LandingPage() {
       </section>
 
       {/* Audiences */}
-      <section className="w-full px-5 py-24 sm:px-8 lg:px-16 xl:px-20">
-        <h2 className="max-w-[24ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">Made for teams that pay people across borders</h2>
-        <div className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2">
-          {AUDIENCES.map(([title, body]) => (
-            <div key={title} className="border-t border-ink pt-5">
-              <h3 className="text-lg font-semibold">{title}</h3>
-              <p className="mt-2 max-w-[52ch] text-[15px] leading-relaxed text-ink-soft">{body}</p>
-            </div>
-          ))}
+      <section className="border-t border-line bg-[#f4f7f5]">
+        <div className="grid w-full gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-16 xl:px-20">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.025em]">Made for teams that pay people across borders</h2>
+            <p className="mt-4 max-w-[40ch] text-[16px] leading-relaxed text-ink-soft">
+              Different teams, same problem: many people, many countries, and money that should only move when the right people agree.
+            </p>
+          </div>
+          <ul className="grid gap-4 md:grid-cols-2">
+            {AUDIENCES.map(({ icon: Icon, title, body, setup }) => (
+              <li key={title} className="flex flex-col rounded-[18px] border border-line bg-surface p-7">
+                <span className="flex size-11 items-center justify-center rounded-[12px] bg-settle-wash text-settle">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <h3 className="mt-6 text-xl font-semibold tracking-[-0.01em]">{title}</h3>
+                <p className="mb-6 mt-2 text-[15px] leading-relaxed text-ink-soft">{body}</p>
+                <dl className="mt-auto border-t border-line pt-4 text-[14px]">
+                  <p className="mb-2 text-[12.5px] font-medium text-ink-faint">Typical setup</p>
+                  {setup.map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-4 py-1.5">
+                      <dt className="text-ink-soft">{k}</dt>
+                      <dd className="text-right font-medium">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
