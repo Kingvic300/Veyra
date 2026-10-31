@@ -316,3 +316,23 @@ describe('audit trail', () => {
     expect(res.body.reason).toMatch(/altered/);
   });
 });
+
+describe('stats', () => {
+  it('aggregates paid batches, months and contractors', async () => {
+    const res = await owner.get(`/organisations/${orgId}/stats`);
+    expectStatus(res, 200);
+    expect(res.body).toMatchObject({ paidAllTime: '4750500000', completedBatches: 1, completedPayments: 3, activeContractors: 3 });
+    expect(res.body.monthly).toHaveLength(6);
+    expect(res.body.monthly.at(-1).total).toBe('4750500000');
+    expect(res.body.contractors[0]).toMatchObject({ name: 'Kwame Mensah', total: '2250500000', payments: 1 });
+    expect(res.body.byCountry.map((c: { country: string }) => c.country)).toEqual(['GH', 'NG', 'SN']);
+    expect(res.body.medianApprovalHours).not.toBeNull();
+  });
+
+  it('withholds per-contractor figures from viewers', async () => {
+    const res = await viewer.get(`/organisations/${orgId}/stats`);
+    expect(res.body.paidAllTime).toBe('4750500000');
+    expect(res.body.contractors).toBeNull();
+    expect(res.body.byCountry).toBeNull();
+  });
+});
