@@ -65,7 +65,7 @@ export function NotificationBell() {
         onClick={toggle}
         aria-expanded={open}
         aria-label={count ? `Notifications, ${count} new` : 'Notifications'}
-        className="relative flex size-10 items-center justify-center rounded-control border border-line bg-surface text-ink-soft hover:bg-wash hover:text-ink"
+        className="relative flex size-9 items-center justify-center rounded-control border border-line bg-surface text-ink-soft hover:bg-wash hover:text-ink"
       >
         <Bell className="size-[18px]" />
         {count > 0 && (
@@ -76,7 +76,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-12 z-50 w-[min(340px,calc(100vw-2.5rem))] overflow-hidden rounded-panel border border-line bg-surface shadow-[0_18px_48px_-20px_rgba(19,32,27,0.45)] lg:left-auto lg:right-0">
+        <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2.5rem))] overflow-hidden rounded-panel border border-line bg-surface shadow-[0_18px_48px_-20px_rgba(19,32,27,0.45)]">
           <section>
             <h3 className="border-b border-line px-4 py-2.5 text-[13px] font-semibold">Waiting on you</h3>
             {waiting.length === 0 ? (

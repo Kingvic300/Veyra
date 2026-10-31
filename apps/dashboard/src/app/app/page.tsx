@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { BrandLoader } from '@/components/loading';
+import { SkeletonShell } from '@/components/loading';
 import { api } from '@/lib/api';
 import { keys, useMe } from '@/lib/hooks';
 
@@ -18,5 +18,5 @@ export default function Home() {
     else if (orgs.data) router.replace(orgs.data[0] ? `/o/${orgs.data[0].id}` : '/onboarding');
   }, [me.isError, orgs.data, router]);
 
-  return <BrandLoader label="Opening your organisation" />;
+  return <SkeletonShell />;
 }
