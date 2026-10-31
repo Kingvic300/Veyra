@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import { Bell, Building2, Code2, FileCheck, FileSpreadsheet, FlaskConical, Gauge, Lock, ShieldCheck, UserCheck, Users, Wallet } from 'lucide-react';
+import { Building2, Code2, ShieldCheck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { HeroVisual } from '@/components/marketing/hero-visual';
+import { ClosingCta, Comparison, Faq, FeatureGroups, HowItWorks } from '@/components/marketing/sections';
 import { ProductTour } from '@/components/marketing/product-tour';
 import { site } from '@/lib/site';
 
@@ -9,56 +10,6 @@ export const metadata: Metadata = {
   title: { absolute: 'Veyra: private payroll for teams that pay in stablecoins' },
   description: site.tagline,
 };
-
-const STEPS = [
-  {
-    title: 'Build the batch',
-    body: 'Pick contractors, enter amounts and save a draft. Veyra checks every payout wallet, the treasury balance and your spending limit before anyone signs.',
-  },
-  {
-    title: 'Collect approvals',
-    body: 'Submitting freezes the recipients and amounts. Approvers sign that exact list from their own wallets; the vault contract counts the signatures.',
-  },
-  {
-    title: 'Settle on-chain',
-    body: 'One transaction pays everyone at once. If any transfer fails, all of them revert, so nobody is paid twice and nobody is skipped.',
-  },
-  {
-    title: 'Keep the proof',
-    body: 'Veyra matches the settlement against token and vault events, then issues a receipt and appends it to a tamper-evident audit log.',
-  },
-];
-
-const FEATURES = [
-  {
-    icon: FileSpreadsheet,
-    title: 'Batch editor',
-    body: 'Add every contractor in one click, see the total as you type, and catch bad wallets before submitting.',
-  },
-  { icon: ShieldCheck, title: 'Contract-enforced approvals', body: 'The vault pays only after the required approver wallets sign the exact list.' },
-  { icon: UserCheck, title: 'Separation of duties', body: 'The person who prepares a batch cannot approve it unless you choose otherwise.' },
-  { icon: Gauge, title: 'Spending limits', body: 'Cap the size of any batch. Larger runs are blocked before they reach approvers.' },
-  {
-    icon: Lock,
-    title: 'Encrypted records',
-    body: 'Contractor names, emails, wallets and amounts are sealed with a key unique to your organisation.',
-  },
-  { icon: Users, title: 'Roles', body: 'Owners, admins, approvers and viewers. Viewers see totals, never who earns what.' },
-  { icon: FileCheck, title: 'Verified receipts', body: 'Printable receipts and CSV exports tied to the settlement transaction and audit chain.' },
-  { icon: Bell, title: 'Notifications', body: 'Know when a batch needs you, when approvals confirm and when money settles.' },
-  { icon: Wallet, title: 'Your wallets', body: 'Works with Starknet wallets that support the Wallet Standard. Veyra never asks for keys.' },
-  { icon: FlaskConical, title: 'Sandbox', body: 'Run the full flow with test funds before you deploy a vault.' },
-  { icon: Code2, title: 'API and SDK', body: 'Drive batches from your own tools with a typed TypeScript client.' },
-  { icon: Building2, title: 'Self-hosting', body: 'Apache 2.0. Run it on your own servers with Postgres and Redis.' },
-];
-
-const COMPARISON: [string, string, string][] = [
-  ['Who approved a payment', 'A thumbs-up in a chat thread', 'Signed on-chain by named approver wallets'],
-  ['Wrong amount or address', 'Found after the money is gone', 'Rejected: the contract checks the frozen list'],
-  ['Paying twenty people', 'Twenty transfers, one by one', 'One transaction that pays all or none'],
-  ['Salary confidentiality', 'Spreadsheet shared with everyone', 'Encrypted, visible by role'],
-  ['Proof for the accountant', 'Screenshots of an explorer', 'Receipt plus a verifiable audit log'],
-];
 
 const AUDIENCES = [
   {
@@ -106,7 +57,6 @@ const AUDIENCES = [
     ],
   },
 ];
-
 
 const NETWORKS = [
   { name: 'Starknet', state: 'Available', note: 'PayrollVault contract, STRK20 private transfers in preview' },
@@ -175,15 +125,7 @@ export default function LandingPage() {
         <h2 className="max-w-[22ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">
           From spreadsheet to verified payment in four steps
         </h2>
-        <ol className="mt-12 grid gap-px overflow-hidden rounded-panel border border-line bg-line md:grid-cols-2 xl:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <li key={s.title} className="bg-surface p-7">
-              <span className="flex size-8 items-center justify-center rounded-full border border-line-strong text-sm font-semibold">{i + 1}</span>
-              <h3 className="mt-6 text-lg font-semibold">{s.title}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{s.body}</p>
-            </li>
-          ))}
-        </ol>
+        <HowItWorks />
       </section>
 
       {/* Product tour */}
@@ -202,45 +144,14 @@ export default function LandingPage() {
       {/* Comparison */}
       <section className="w-full px-5 py-24 sm:px-8 lg:px-16 xl:px-20">
         <h2 className="max-w-[26ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">What changes when payroll runs through Veyra</h2>
-        <div className="mt-10 overflow-x-auto rounded-panel border border-line bg-surface">
-          <table className="w-full min-w-[640px] text-[15px]">
-            <thead>
-              <tr className="text-left">
-                <th className="w-1/4 px-6 py-4 text-[13px] font-medium text-ink-faint">&nbsp;</th>
-                <th className="px-6 py-4 font-semibold text-ink-soft">Spreadsheet and a wallet</th>
-                <th className="px-6 py-4 font-semibold">With Veyra</th>
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARISON.map(([what, before, after]) => (
-                <tr key={what} className="border-t border-line">
-                  <td className="px-6 py-4 font-medium">{what}</td>
-                  <td className="px-6 py-4 text-ink-soft">{before}</td>
-                  <td className="px-6 py-4 text-settle-strong">{after}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Comparison />
       </section>
 
       {/* Features */}
-      <section className="border-t border-line">
+      <section className="border-t border-line bg-[#f4f7f5]">
         <div className="w-full px-5 py-24 sm:px-8 lg:px-16 xl:px-20">
           <h2 className="max-w-[22ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">Everything a payroll run needs</h2>
-          <ul className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] border border-line bg-surface text-settle">
-                  <Icon className="size-[18px]" aria-hidden />
-                </span>
-                <div>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{body}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <FeatureGroups />
         </div>
       </section>
 
@@ -371,56 +282,33 @@ await veyra.batches.submit(orgId, batch.id);`}
 
       {/* FAQ */}
       <section className="border-t border-line">
-        <div className="w-full grid gap-10 px-5 py-24 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_2fr]">
-          <div>
+        <div className="grid w-full gap-10 px-5 py-24 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-16 xl:px-20">
+          <div className="lg:sticky lg:top-28 lg:self-start">
             <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.025em]">Questions teams ask first</h2>
-            <p className="mt-4 text-[15px] text-ink-soft">
-              Something else?{' '}
-              <Link href="/contact" className="font-medium text-settle hover:underline">
-                Ask us
-              </Link>
-              .
-            </p>
+            <div className="mt-8 rounded-panel border border-line bg-surface p-6">
+              <p className="font-semibold">Still deciding?</p>
+              <p className="mt-1 text-[15px] text-ink-soft">Tell us how you pay your team today and we will show you how it would run in Veyra.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  href="/contact"
+                  className="inline-flex h-10 items-center rounded-control bg-ink px-4 text-sm font-medium text-white hover:bg-settle-strong"
+                >
+                  Talk to us
+                </Link>
+                <Link
+                  href="/security"
+                  className="inline-flex h-10 items-center rounded-control border border-line-strong px-4 text-sm font-medium hover:bg-wash"
+                >
+                  Security details
+                </Link>
+              </div>
+            </div>
           </div>
-          <div className="divide-y divide-line border-y border-line">
-            {FAQ.map(([q, a]) => (
-              <details key={q} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
-                  {q}
-                  <span className="text-xl font-normal text-ink-faint transition-transform group-open:rotate-45" aria-hidden>
-                    +
-                  </span>
-                </summary>
-                <p className="mt-2 max-w-[64ch] text-ink-soft">{a}</p>
-              </details>
-            ))}
-          </div>
+          <Faq items={FAQ as [string, string][]} />
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-line bg-ink text-white">
-        <div className="w-full flex flex-wrap items-center justify-between gap-8 px-5 py-20 sm:px-8 lg:px-16 xl:px-20">
-          <div>
-            <h2 className="max-w-[24ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">Run your next payroll through Veyra</h2>
-            <p className="mt-3 text-[16px] text-white/70">Start in the sandbox, then connect a vault when you are ready to pay for real.</p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/register"
-              className="inline-flex h-12 items-center rounded-control bg-white px-6 text-[15px] font-medium text-ink hover:bg-settle-wash"
-            >
-              Create an account
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex h-12 items-center rounded-control border border-white/25 px-6 text-[15px] font-medium hover:bg-white/10"
-            >
-              Talk to us
-            </Link>
-          </div>
-        </div>
-      </section>
+      <ClosingCta />
     </>
   );
 }
