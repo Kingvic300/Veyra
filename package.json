@@ -26,5 +26,10 @@
     "db:migrate": "npm run db:migrate -w @veyra/api",
     "services:up": "docker compose up -d postgres redis",
     "services:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }
