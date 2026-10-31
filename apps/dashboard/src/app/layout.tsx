@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Mono, Schibsted_Grotesk } from 'next/font/google';
+import { CookieConsent } from '@/components/cookie-consent';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
@@ -15,7 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${schibsted.variable} ${plexMono.variable}`}>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <CookieConsent />
+        </Providers>
       </body>
     </html>
   );
