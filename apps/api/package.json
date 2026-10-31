@@ -1,0 +1,45 @@
+{
+  "name": "@veyra/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Veyra payroll and treasury API",
+  "license": "Apache-2.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsc -p tsconfig.build.json && (tsc -p tsconfig.build.json --watch --preserveWatchOutput & node --watch --env-file-if-exists=.env dist/main.js)",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file-if-exists=.env dist/db/migrate.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.3.2",
+    "@nestjs/core": "^12.3.2",
+    "@nestjs/jwt": "^12.0.3",
+    "@nestjs/platform-express": "^12.3.2",
+    "@nestjs/throttler": "^6.7.1",
+    "@veyra/chain-adapter": "0.1.0",
+    "@veyra/core": "0.1.0",
+    "@veyra/starknet-adapter": "0.1.0",
+    "bullmq": "^6.5.3",
+    "drizzle-orm": "^0.45.4",
+    "helmet": "^8.3.0",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^12.3.2",
+    "@swc/core": "^1.16.21",
+    "@types/express": "^5.0.6",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "drizzle-kit": "^0.31.11",
+    "supertest": "^7.3.1",
+    "unplugin-swc": "^2.0.0"
+  },
+  "type": "module"
+}
