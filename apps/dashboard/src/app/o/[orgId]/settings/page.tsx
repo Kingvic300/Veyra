@@ -52,7 +52,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" description="Treasury and approval rules. Every change is written to the audit log." />
-      <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <form onSubmit={onSubmit} className="flex flex-col gap-6 rounded-panel border border-line bg-surface p-6">
           <Field label="Organisation name" htmlFor="name">
             <Input id="name" name="name" defaultValue={o.name} required />

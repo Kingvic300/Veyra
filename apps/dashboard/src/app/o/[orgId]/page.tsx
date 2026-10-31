@@ -78,7 +78,7 @@ export default function OverviewPage() {
         </div>
       )}
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Panel title="Needs you" padded={false}>
           {batches.isLoading ? (
             <div className="px-5">

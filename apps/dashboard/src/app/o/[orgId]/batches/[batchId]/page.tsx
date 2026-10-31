@@ -200,7 +200,7 @@ export default function BatchPage() {
 
       <section className="rounded-panel border border-line bg-surface p-6" aria-label="Settlement">
         <SettlementRail batch={b} chain={o.chain} network={o.network} requiresProposal={c.requiresProposal} />
-        {(primary || canCancel || b.status === 'DRAFT') && (
+        {(primary || canCancel || b.status === 'DRAFT' || (b.status === 'PENDING_APPROVAL' && (myApproval || approvalBlocked))) && (
           <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line pt-5">
             {primary && (
               <Button
@@ -258,8 +258,8 @@ export default function BatchPage() {
         </div>
       )}
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1.6fr_1fr]">
-        <div className="flex flex-col gap-8">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-8">
           <Panel
             title="Payments"
             padded={false}
@@ -339,7 +339,7 @@ export default function BatchPage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-8">
+        <div className="flex min-w-0 flex-col gap-8">
           <Panel title="Approvals">
             <p className="text-sm text-ink-soft">
               {b.approvalSummary.confirmed} of {b.approvalSummary.required} required
