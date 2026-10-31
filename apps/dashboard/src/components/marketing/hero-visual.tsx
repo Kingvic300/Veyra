@@ -15,13 +15,19 @@ const STOPS = [
   { label: 'Verified', detail: 'Matches chain events' },
 ];
 
+const APPROVERS = [
+  ['TB', '#1f5f73', '#e2eff3', 'Tunde B.', '0x05c2…41af'],
+  ['WK', '#8a5a12', '#f7ecd9', 'Wanjiru K.', '0x0a17…9d03'],
+];
+
 /**
- * The product in one picture: a payroll batch and its settlement rail.
- * The rail fills once on load (the page's single orchestrated motion).
+ * The product in one picture: a payroll batch, its settlement rail and the
+ * signatures behind it. The rail fills once on load (the page's single
+ * orchestrated motion).
  */
 export function HeroVisual() {
   return (
-    <div className="relative" aria-hidden>
+    <div className="relative sm:pb-28" aria-hidden>
       <div className="rounded-[18px] border border-line bg-surface shadow-[0_40px_80px_-48px_rgba(19,32,27,0.55)]">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
@@ -75,7 +81,25 @@ export function HeroVisual() {
         </table>
       </div>
 
-      <div className="absolute -bottom-16 -left-10 hidden w-64 rounded-panel border border-line bg-surface p-4 shadow-[0_24px_60px_-36px_rgba(19,32,27,0.6)] sm:block">
+      <div className="absolute -bottom-4 right-4 hidden w-60 rounded-panel border border-line bg-surface p-4 shadow-[0_24px_60px_-36px_rgba(19,32,27,0.6)] sm:block">
+        <p className="text-[12.5px] text-ink-faint">Signed on-chain by</p>
+        <ul className="mt-2 flex flex-col gap-2">
+          {APPROVERS.map(([ini, fg, bg, name, wallet]) => (
+            <li key={name} className="flex items-center gap-2.5">
+              <span className="flex size-7 items-center justify-center rounded-full text-[11px] font-semibold" style={{ color: fg, background: bg }}>
+                {ini}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-medium">{name}</span>
+                <span className="block font-mono text-[11px] text-ink-faint">{wallet}</span>
+              </span>
+              <Check className="size-4 text-settle" />
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="absolute bottom-0 left-4 hidden w-64 rounded-panel border border-line bg-surface p-4 shadow-[0_24px_60px_-36px_rgba(19,32,27,0.6)] sm:block">
         <p className="flex items-center gap-2 text-[13px] font-semibold">
           <Lock className="size-3.5 text-settle" /> Stored encrypted
         </p>
