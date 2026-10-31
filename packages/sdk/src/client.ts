@@ -11,6 +11,7 @@ import type {
   ExecutionMode,
   Member,
   Organisation,
+  OrganisationStats,
   PayrollBatch,
   Receipt,
   Role,
@@ -126,6 +127,7 @@ export class VeyraClient {
     update: (orgId: string, input: UpdateOrganisationInput) => this.request<Organisation>('PATCH', `/organisations/${orgId}`, input),
     capabilities: (orgId: string) => this.request<ChainCapabilities>('GET', `/organisations/${orgId}/capabilities`),
     treasury: (orgId: string) => this.request<Treasury>('GET', `/organisations/${orgId}/treasury`),
+    stats: (orgId: string) => this.request<OrganisationStats>('GET', `/organisations/${orgId}/stats`),
   };
 
   readonly members = {
