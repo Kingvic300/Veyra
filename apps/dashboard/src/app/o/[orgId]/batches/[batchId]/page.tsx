@@ -4,14 +4,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, FileText, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { TransactionKind, UnsignedTransaction } from '@veyra/sdk';
 import { PrivacyPanel, SettlementRail, StatusPill } from '@/components/batch-bits';
 import { BatchEditor } from '@/components/batch-editor';
-import { useToast, useWallet } from '@/components/providers';
+import { useNotify, useToast, useWallet } from '@/components/providers';
 import { Button, Dialog, Field, Hash, Input, Notice, Panel, Pill, Spinner, Table } from '@/components/ui';
 import { WalletPicker } from '@/components/wallet-button';
-import { API_URL, api, errorMessage } from '@/lib/api';
+import { API_URL, VeyraApiError, api, errorMessage } from '@/lib/api';
 import { amount, date, explorerUrl } from '@/lib/format';
 import { keys, useCapabilities, useMe, useOrg } from '@/lib/hooks';
 import { sameAddress, type ConnectedWallet } from '@/lib/wallet';
@@ -23,6 +23,7 @@ export default function BatchPage() {
   const caps = useCapabilities();
   const qc = useQueryClient();
   const toast = useToast();
+  const notify = useNotify();
   const { wallet } = useWallet();
   const [walletOpen, setWalletOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -101,18 +102,63 @@ export default function BatchPage() {
     },
     onSuccess: async (result, kind) => {
       if (result === null) return;
-      const done: Record<string, string> = {
-        submit: 'Sent for approval',
-        propose: 'Registration sent. Waiting for the block.',
-        approve: caps.data?.onChainApprovals ? 'Approval sent. Waiting for the block.' : 'Approved',
-        execute: 'Payment sent. Settling now.',
-        reconcile: 'Checking the chain again',
+      const done: Record<string, [string, string]> = {
+        submit: ['Sent for approval', 'Approvers can review it now.'],
+        propose: ['Registration sent', 'Waiting for the block to confirm it.'],
+        approve: caps.data?.onChainApprovals ? ['Approval sent', 'It counts once the block confirms it.'] : ['Approved', 'Your approval is recorded.'],
+        execute: ['Payment sent', 'Settling now. This page updates when it is final.'],
+        reconcile: ['Checking the chain again', 'Status updates in a few seconds.'],
       };
-      toast('settle', done[kind]!);
+      toast('settle', done[kind]![0], done[kind]![1]);
       await refresh();
     },
-    onError: (err) => toast('fail', errorMessage(err)),
+    onError: (err, kind) => {
+      if (err instanceof VeyraApiError) {
+        toast('fail', 'Veyra could not record that', errorMessage(err));
+        return;
+      }
+      // Anything else came from the wallet or the network before Veyra saw it.
+      notify.alert({
+        tone: 'error',
+        title: kind === 'approve' ? 'Approval was not sent' : kind === 'execute' ? 'Payment was not sent' : 'Transaction was not sent',
+        body: (
+          <>
+            <p>{errorMessage(err)}</p>
+            <p className="mt-2">Nothing was recorded and no funds moved. You can try again.</p>
+          </>
+        ),
+      });
+    },
   });
+
+  // Announce outcomes that arrive later from the chain while this page is open.
+  const previous = useRef<{ status?: string; proposal?: string }>({});
+  useEffect(() => {
+    const b = batch.data;
+    if (!b) return;
+    const prev = previous.current;
+    if (prev.status === 'EXECUTING' && b.status === 'COMPLETED') {
+      notify.alert({
+        tone: 'success',
+        title: 'Batch paid',
+        body: `${b.itemCount} contractors received ${amount(b.total, b.asset)}. Every payment was checked against the settlement transaction.`,
+        action: { label: 'View receipt', href: `/o/${orgId}/batches/${batchId}/receipt` },
+      });
+    } else if (prev.status === 'EXECUTING' && b.status === 'FAILED') {
+      notify.alert({
+        tone: 'error',
+        title: 'Payment did not go through',
+        body: `${b.executions?.at(-1)?.error ?? 'The transaction failed'}. No funds left the treasury, so you can retry.`,
+      });
+    } else if (prev.status === 'PENDING_APPROVAL' && b.status === 'APPROVED') {
+      toast('settle', 'Batch fully approved', 'It is ready to pay.');
+    }
+    if (prev.proposal === 'PENDING' && b.proposal.status === 'CONFIRMED') toast('settle', 'Registered on-chain', 'Approvers can now sign this batch.');
+    if (prev.proposal === 'PENDING' && b.proposal.status === 'FAILED') {
+      notify.alert({ tone: 'error', title: 'On-chain registration failed', body: 'The vault did not accept the batch. Check the transaction in the explorer, then register again.' });
+    }
+    previous.current = { status: b.status, proposal: b.proposal.status };
+  }, [batch.data, notify, toast, orgId, batchId]);
 
   const cancel = useMutation({
     mutationFn: (reason: string) => api.batches.cancel(orgId, batchId, reason || undefined),
@@ -122,7 +168,7 @@ export default function BatchPage() {
       if (r.onchainCancel) setOnchainCancel(r.onchainCancel);
       await refresh();
     },
-    onError: (err) => toast('fail', errorMessage(err)),
+    onError: (err) => toast('fail', 'Could not cancel', errorMessage(err)),
   });
 
   if (batch.isLoading || caps.isLoading) return <Spinner />;
