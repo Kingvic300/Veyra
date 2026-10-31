@@ -37,7 +37,9 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   return (
     <main className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
       <section className="block-grid relative hidden flex-col justify-between border-r border-line bg-paper p-12 lg:flex">
-        <Logo />
+        <Link href="/" aria-label="Veyra home">
+          <Logo />
+        </Link>
         <div className="max-w-[30rem]">
           <p className="text-[34px] font-semibold leading-[1.12] tracking-[-0.02em]">
             Pay your team on-chain. Keep every salary between you and them.
@@ -91,6 +93,19 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             <Button type="submit" loading={busy} className="mt-2 w-full">
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </Button>
+            {mode === 'register' && (
+              <p className="text-[12.5px] text-ink-faint">
+                By creating an account you agree to the{' '}
+                <Link href="/legal/terms" className="underline hover:text-ink">
+                  terms of service
+                </Link>{' '}
+                and confirm you have read the{' '}
+                <Link href="/legal/privacy" className="underline hover:text-ink">
+                  privacy policy
+                </Link>
+                .
+              </p>
+            )}
           </div>
           <p className="mt-6 text-sm text-ink-soft">
             {mode === 'login' ? (
