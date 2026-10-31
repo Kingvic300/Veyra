@@ -23,5 +23,35 @@ services:
       interval: 5s
       retries: 10
 
+  # Full stack: docker compose --profile app up --build
+  api:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file: apps/api/.env
+    environment:
+      DATABASE_URL: postgres://veyra:veyra@postgres:5432/veyra
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+      args:
+        NEXT_PUBLIC_VEYRA_API_URL: http://localhost:4000/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
 volumes:
   veyra-pg:
