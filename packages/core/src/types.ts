@@ -211,3 +211,43 @@ export interface Receipt {
   privacy: PrivacyCapabilities;
   auditTrail: { seq: number; action: string; createdAt: string; hash: string }[];
 }
+
+export interface MonthlySpend {
+  /** YYYY-MM */
+  month: string;
+  total: string;
+  batches: number;
+  payments: number;
+}
+
+export interface ContractorEarnings {
+  contractorId: string;
+  name: string;
+  country: string | null;
+  total: string;
+  payments: number;
+  lastPaidAt: string | null;
+}
+
+export interface OrganisationStats {
+  asset: Asset;
+  paidAllTime: string;
+  paidThisMonth: string;
+  paidLastMonth: string;
+  completedBatches: number;
+  completedPayments: number;
+  activeContractors: number;
+  awaitingApproval: { count: number; total: string };
+  readyToPay: { count: number; total: string };
+  failed: number;
+  drafts: number;
+  /** Last 6 calendar months, oldest first, zero-filled. */
+  monthly: MonthlySpend[];
+  /** Median hours from submission to full approval; null with no data. */
+  medianApprovalHours: number | null;
+  /** Median seconds from payment submission to final settlement. */
+  medianSettlementSeconds: number | null;
+  /** Only for roles that can read contractor records. */
+  byCountry: { country: string; total: string; contractors: number }[] | null;
+  contractors: ContractorEarnings[] | null;
+}
