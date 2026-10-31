@@ -143,7 +143,15 @@ export function MarketingFooter() {
         <div>
           <Logo />
           <p className="mt-4 max-w-[34ch] text-sm text-ink-soft">{site.tagline}</p>
-          <p className="mt-6 text-[13px] text-ink-faint">Open source under the Apache License 2.0.</p>
+          <a
+            href={site.githubUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 inline-flex h-10 items-center gap-2 rounded-control border border-line-strong bg-surface px-4 text-sm font-medium hover:bg-wash"
+          >
+            <GithubMark className="size-4" /> Star the code on GitHub
+          </a>
+          <p className="mt-4 text-[13px] text-ink-faint">Open source under the Apache License 2.0. Built in Lagos.</p>
         </div>
         {FOOTER.map((g) => (
           <div key={g.title}>
