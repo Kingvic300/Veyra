@@ -89,11 +89,11 @@ export function SettlementRail({ batch, chain, network, requiresProposal }: { ba
             )}
             <span
               className={clsx(
-                'relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2 bg-surface',
+                'relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2',
                 step.state === 'done' && 'border-settle bg-settle text-white',
-                step.state === 'current' && 'border-pending',
+                step.state === 'current' && 'border-pending bg-surface',
                 step.state === 'failed' && 'border-fail bg-fail text-white',
-                (step.state === 'waiting' || step.state === 'skipped') && 'border-line-strong',
+                (step.state === 'waiting' || step.state === 'skipped') && 'border-line-strong bg-surface',
               )}
             >
               {step.state === 'done' && <Check className="size-3.5" strokeWidth={3} />}
