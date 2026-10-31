@@ -1,0 +1,30 @@
+{
+  "name": "veyra",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source multi-chain private payroll and treasury infrastructure",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/core",
+    "packages/chain-adapter",
+    "chains/starknet/adapter",
+    "packages/sdk",
+    "apps/api",
+    "apps/dashboard"
+  ],
+  "scripts": {
+    "build": "npm run build -w @veyra/core -w @veyra/chain-adapter -w @veyra/starknet-adapter -w @veyra/sdk -w @veyra/api -w @veyra/dashboard",
+    "build:packages": "npm run build -w @veyra/core -w @veyra/chain-adapter -w @veyra/starknet-adapter -w @veyra/sdk",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:contracts": "cd chains/starknet/contracts && snforge test",
+    "dev:api": "npm run dev -w @veyra/api",
+    "dev:dashboard": "npm run dev -w @veyra/dashboard",
+    "db:migrate": "npm run db:migrate -w @veyra/api",
+    "services:up": "docker compose up -d postgres redis",
+    "services:down": "docker compose down"
+  }
+}
