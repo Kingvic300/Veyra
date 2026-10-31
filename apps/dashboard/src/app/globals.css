@@ -1,0 +1,111 @@
+@import 'tailwindcss';
+
+/*
+ * Veyra visual tokens. Banknote-ink palette: cool paper, deep green-black ink,
+ * settlement green for anything that moved money or was verified, amber for
+ * waiting on someone, red for failure. Light mode first.
+ */
+@theme {
+  --color-paper: #fbfcfb;
+  --color-surface: #ffffff;
+  --color-ink: #13201b;
+  --color-ink-soft: #4a5a53;
+  --color-ink-faint: #7d8b85;
+  --color-line: #dce3df;
+  --color-line-strong: #c3cec8;
+  --color-wash: #eef4f1;
+  --color-settle: #0b6b4f;
+  --color-settle-strong: #08523d;
+  --color-settle-wash: #e3f1eb;
+  --color-pending: #b7791f;
+  --color-pending-wash: #fbf1df;
+  --color-fail: #c0352b;
+  --color-fail-wash: #fbe9e7;
+
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --radius-chip: 6px;
+  --radius-control: 8px;
+  --radius-panel: 14px;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-feature-settings: 'ss01', 'tnum';
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-settle-wash);
+    color: var(--color-settle-strong);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-settle);
+    outline-offset: 2px;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+  }
+}
+
+/* Quiet block-grid backdrop behind the auth screens: a ledger of empty blocks. */
+.block-grid {
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
+/* The settlement rail: one orchestrated fill when a step completes. */
+@keyframes rail-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.rail-segment-done {
+  transform-origin: left;
+  animation: rail-fill 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-pending) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-pending) 0%, transparent);
+  }
+}
+.dot-live {
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-segment-done,
+  .dot-live {
+    animation: none;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
