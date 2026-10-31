@@ -1,9 +1,12 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { discoverWallets, onWalletsChanged, type ConnectedWallet, type WalletOption } from '@/lib/wallet';
 import { VeyraApiError } from '@/lib/api';
+import { NotificationsProvider, SESSION_EXPIRED_EVENT, SIGNED_IN_FLAG, useNotify, type NoticeTone } from './notifications';
+
+export { useNotify } from './notifications';
 
 // ---- Wallet ----------------------------------------------------------------
 
@@ -68,48 +71,18 @@ export function useWallet(): WalletState {
   return ctx;
 }
 
-// ---- Toasts ------------------------------------------------------------------
+// ---- Toasts (compatibility wrapper over the notifications system) -------------
 
-interface Toast {
-  id: number;
-  tone: 'settle' | 'fail' | 'neutral';
-  text: string;
-}
-const ToastContext = createContext<(tone: Toast['tone'], text: string) => void>(() => {});
+type LegacyTone = 'settle' | 'fail' | 'neutral';
+const TONE_MAP: Record<LegacyTone, NoticeTone> = { settle: 'success', fail: 'error', neutral: 'info' };
 
-function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const push = useCallback((tone: Toast['tone'], text: string) => {
-    const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, tone, text }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4500);
-  }, []);
-  return (
-    <ToastContext.Provider value={push}>
-      {children}
-      <div className="no-print pointer-events-none fixed bottom-5 right-5 z-50 flex flex-col gap-2" aria-live="polite">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className={
-              'pointer-events-auto max-w-sm rounded-control border px-4 py-3 text-sm shadow-[0_6px_24px_-12px_rgba(19,32,27,0.35)] ' +
-              (t.tone === 'fail'
-                ? 'border-fail/30 bg-surface text-fail'
-                : t.tone === 'settle'
-                  ? 'border-settle/30 bg-surface text-settle-strong'
-                  : 'border-line bg-surface text-ink')
-            }
-          >
-            {t.text}
-          </div>
-        ))}
-      </div>
-    </ToastContext.Provider>
-  );
-}
-
+/** Short helper: toast(tone, title, description?). */
 export function useToast() {
-  return useContext(ToastContext);
+  const { toast } = useNotify();
+  return useCallback(
+    (tone: LegacyTone, title: string, description?: string) => toast({ tone: TONE_MAP[tone], title, description }),
+    [toast],
+  );
 }
 
 // ---- Root --------------------------------------------------------------------
@@ -118,6 +91,14 @@ export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(
     () =>
       new QueryClient({
+        queryCache: new QueryCache({
+          onError: (err) => {
+            if (err instanceof VeyraApiError && err.status === 401) window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+          },
+          onSuccess: (_data, query) => {
+            if (query.queryKey[0] === 'me') sessionStorage.setItem(SIGNED_IN_FLAG, '1');
+          },
+        }),
         defaultOptions: {
           queries: {
             staleTime: 10_000,
@@ -129,9 +110,9 @@ export function Providers({ children }: { children: ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <ToastProvider>
+      <NotificationsProvider>
         <WalletProvider>{children}</WalletProvider>
-      </ToastProvider>
+      </NotificationsProvider>
     </QueryClientProvider>
   );
 }
