@@ -23,6 +23,8 @@ import { BatchesController } from './batches/batches.controller.js';
 import { BullTxMonitor, InlineTxMonitor, TxMonitor } from './jobs/tx-monitor.js';
 import { ReconcilerService } from './jobs/reconciler.service.js';
 import { HealthController } from './health.controller.js';
+import { StatsController } from './stats/stats.controller.js';
+import { StatsService } from './stats/stats.service.js';
 
 class PoolCloser implements OnApplicationShutdown {
   constructor(@Inject(PG_POOL) private readonly pool: pg.Pool) {}
@@ -47,6 +49,7 @@ export class AppModule {
         ContractorsController,
         BatchesController,
         AuditController,
+        StatsController,
       ],
       providers: [
         { provide: APP_CONFIG, useValue: config },
@@ -66,6 +69,7 @@ export class AppModule {
         ContractorsService,
         BatchesService,
         ReconcilerService,
+        StatsService,
       ],
     };
   }
