@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger, type OnApplicationShutdown } from '@nestjs/common';
 import { Queue, Worker, type Job } from 'bullmq';
+import { Redis } from 'ioredis';
 import { APP_CONFIG, type AppConfig } from '../config.js';
 
 export type ChainJobKind = 'proposal' | 'approval' | 'execution';
@@ -117,10 +118,18 @@ export class BullTxMonitor extends TxMonitor implements OnApplicationShutdown {
   private readonly logger = new Logger('BullTxMonitor');
   private readonly queue: Queue<ChainJob>;
   private worker: Worker<ChainJob> | null = null;
+  private readonly connections: Redis[] = [];
 
   constructor(@Inject(APP_CONFIG) private readonly config: AppConfig) {
     super();
-    this.queue = new Queue<ChainJob>(QUEUE_NAME, { connection: { url: config.redisUrl } });
+    this.queue = new Queue<ChainJob>(QUEUE_NAME, { connection: this.redis() });
+  }
+
+  /** BullMQ needs its own ioredis client per queue/worker in ESM. */
+  private redis(): Redis {
+    const client = new Redis(this.config.redisUrl!, { maxRetriesPerRequest: null });
+    this.connections.push(client);
+    return client;
   }
 
   override setHandler(handler: ChainJobHandler) {
@@ -132,7 +141,7 @@ export class BullTxMonitor extends TxMonitor implements OnApplicationShutdown {
         const outcome = await handler(job.data);
         if (outcome === 'retry') throw new RetryLater();
       },
-      { connection: { url: this.config.redisUrl }, concurrency: 5 },
+      { connection: this.redis(), concurrency: 5 },
     );
     this.worker.on('failed', (job, err) => {
       if (!(err instanceof RetryLater)) this.logger.error(`Chain job ${job?.id} error: ${err.message}`);
@@ -158,6 +167,7 @@ export class BullTxMonitor extends TxMonitor implements OnApplicationShutdown {
   async close() {
     await this.worker?.close();
     await this.queue.close();
+    await Promise.all(this.connections.map((c) => c.quit().catch(() => undefined)));
   }
 
   async onApplicationShutdown() {
