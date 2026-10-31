@@ -35,7 +35,6 @@
     color-scheme: light;
     background: var(--color-paper);
     color: var(--color-ink);
-    font-feature-settings: 'ss01', 'tnum';
   }
   body {
     font-family: var(--font-sans);
