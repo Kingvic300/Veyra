@@ -21,13 +21,13 @@ export default function TermsPage() {
 
       <h2>2. What Veyra is</h2>
       <p>
-        Veyra is software for preparing payroll batches, collecting approvals, building blockchain transactions for your wallets to sign, and verifying
-        and recording the results. <strong>Veyra is non-custodial.</strong> We never hold your funds or your private keys. Payments move from your
-        treasury contract or account when your authorised wallets sign them.
+        Veyra is software for preparing payroll batches, collecting approvals, building blockchain transactions for your wallets to sign, and
+        verifying and recording the results. <strong>Veyra is non-custodial.</strong> We never hold your funds or your private keys. Payments move
+        from your treasury contract or account when your authorised wallets sign them.
       </p>
       <p>
-        Veyra is not a bank, money transmitter, payment institution, exchange, broker or tax adviser, and nothing in the service is financial, legal or
-        tax advice.
+        Veyra is not a bank, money transmitter, payment institution, exchange, broker or tax adviser, and nothing in the service is financial, legal
+        or tax advice.
       </p>
 
       <h2>3. Your account</h2>
@@ -57,20 +57,21 @@ export default function TermsPage() {
 
       <h2>5. Blockchain transactions</h2>
       <p>
-        Transactions are processed by independent networks we do not control. They may be delayed, fail, cost network fees or, once final, be impossible
-        to reverse. Experimental features such as STRK20 private transfers may not work as expected. Read the <Link href="/legal/risk">risk disclosure</Link>.
+        Transactions are processed by independent networks we do not control. They may be delayed, fail, cost network fees or, once final, be
+        impossible to reverse. Experimental features such as STRK20 private transfers may not work as expected. Read the{' '}
+        <Link href="/legal/risk">risk disclosure</Link>.
       </p>
 
       <h2>6. Fees</h2>
       <p>
-        Hosted plans are billed as shown on the <Link href="/pricing">pricing page</Link> or in your order. Network fees are paid by your wallets and are
-        not collected by us. We will give at least 30 days&apos; notice of price changes.
+        Hosted plans are billed as shown on the <Link href="/pricing">pricing page</Link> or in your order. Network fees are paid by your wallets and
+        are not collected by us. We will give at least 30 days&apos; notice of price changes.
       </p>
 
       <h2>7. Your data</h2>
       <p>
-        Your organisation owns the data it puts into Veyra. You give us permission to store and process it only to run the service, as described in the{' '}
-        <Link href="/legal/privacy">privacy policy</Link>. You can export receipts and audit logs at any time.
+        Your organisation owns the data it puts into Veyra. You give us permission to store and process it only to run the service, as described in
+        the <Link href="/legal/privacy">privacy policy</Link>. You can export receipts and audit logs at any time.
       </p>
 
       <h2>8. Availability and changes</h2>
@@ -109,7 +110,9 @@ export default function TermsPage() {
       </p>
 
       <h2>14. Changes to these terms</h2>
-      <p>We will give account owners at least 30 days&apos; notice of material changes. Continuing to use the service after that means you accept them.</p>
+      <p>
+        We will give account owners at least 30 days&apos; notice of material changes. Continuing to use the service after that means you accept them.
+      </p>
     </LegalPage>
   );
 }

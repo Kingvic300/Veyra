@@ -12,7 +12,7 @@ const LEGAL_NAV = [
 
 export function LegalPage({ title, summary, current, children }: { title: string; summary: string; current: string; children: ReactNode }) {
   return (
-    <div className="mx-auto grid max-w-[1200px] gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+    <div className="w-full grid gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[220px_minmax(0,1fr)]">
       <nav aria-label="Legal documents" className="lg:sticky lg:top-24 lg:self-start">
         <ul className="flex flex-wrap gap-2 lg:flex-col lg:gap-1">
           {LEGAL_NAV.map((l) => (
@@ -48,7 +48,7 @@ export function MarketingPage({ title, intro, children }: { title: string; intro
   return (
     <>
       <section className="block-grid border-b border-line">
-        <div className="mx-auto max-w-[1200px] px-5 pb-16 pt-20 sm:px-8">
+        <div className="w-full px-5 pb-16 pt-20 sm:px-8 lg:px-16 xl:px-20">
           <h1 className="max-w-[20ch] text-[44px] font-semibold leading-[1.06] tracking-[-0.03em]">{title}</h1>
           <div className="mt-5 max-w-[60ch] text-[17px] leading-relaxed text-ink-soft">{intro}</div>
         </div>

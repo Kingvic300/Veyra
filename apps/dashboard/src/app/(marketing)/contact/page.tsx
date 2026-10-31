@@ -16,7 +16,7 @@ const CHANNELS = [
 export default function ContactPage() {
   return (
     <MarketingPage title="Talk to the Veyra team" intro="Pick the inbox that fits. A person reads every message.">
-      <section className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8">
+      <section className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
         <ul className="grid gap-4 md:grid-cols-2">
           {CHANNELS.map(({ icon: Icon, title, body, email }) => (
             <li key={title} className="flex gap-4 rounded-panel border border-line bg-surface p-6">
@@ -35,7 +35,12 @@ export default function ContactPage() {
         </ul>
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-panel border border-line bg-[#f4f7f5] p-6">
           <p className="max-w-[56ch] text-[15px] text-ink-soft">Found a bug or want a feature? Open an issue on GitHub so others can follow it.</p>
-          <a href={`${site.githubUrl}/issues`} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-control border border-line-strong bg-surface px-4 text-sm font-medium hover:bg-wash">
+          <a
+            href={`${site.githubUrl}/issues`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 items-center gap-2 rounded-control border border-line-strong bg-surface px-4 text-sm font-medium hover:bg-wash"
+          >
             <GithubMark className="size-4" /> Open an issue
           </a>
         </div>

@@ -25,7 +25,8 @@ export default function RiskPage() {
       <h2>Experimental privacy</h2>
       <p>
         STRK20 private transfers are a preview feature that depends on third-party wallets and the Starknet privacy pool. They may fail, change or be
-        withdrawn. Deposits into and withdrawals from the pool are public, and the privacy they offer depends on how you and your contractors use them.
+        withdrawn. Deposits into and withdrawals from the pool are public, and the privacy they offer depends on how you and your contractors use
+        them.
       </p>
 
       <h2>Stablecoins and tokens</h2>

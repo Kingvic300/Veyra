@@ -15,8 +15,8 @@ export default function PrivacyPage() {
       <h2>1. Who we are</h2>
       <p>
         The hosted Veyra service is operated by <strong>{site.legalEntity}</strong>, {site.registeredAddress} (&quot;Veyra&quot;, &quot;we&quot;,
-        &quot;us&quot;). For account data we are the data controller. For the payroll data your organisation enters (contractor names, emails,
-        payout wallets and amounts) your organisation is the controller and we process it on your behalf as a processor.
+        &quot;us&quot;). For account data we are the data controller. For the payroll data your organisation enters (contractor names, emails, payout
+        wallets and amounts) your organisation is the controller and we process it on your behalf as a processor.
       </p>
       <p>
         If you run the open-source software on your own servers, the person or company operating that installation is responsible for it, and this
@@ -97,8 +97,8 @@ export default function PrivacyPage() {
           <strong>To meet legal obligations</strong>, such as responding to lawful requests from authorities. Legal basis: legal obligation.
         </li>
         <li>
-          <strong>To improve Veyra</strong> with anonymous usage measurement, only if you agree in the cookie settings. Legal basis: consent, which you
-          can withdraw at any time.
+          <strong>To improve Veyra</strong> with anonymous usage measurement, only if you agree in the cookie settings. Legal basis: consent, which
+          you can withdraw at any time.
         </li>
       </ul>
       <p>We do not sell personal data, use it for advertising, or make automated decisions that have legal effects on you.</p>
@@ -132,16 +132,16 @@ export default function PrivacyPage() {
 
       <h2>8. Security</h2>
       <p>
-        We encrypt sensitive payroll fields at rest with a per-organisation key, use TLS in transit, enforce role-based access on the server, and keep a
-        tamper-evident audit log. Read more on the <Link href="/security">security page</Link>. No system is perfectly secure; if we learn of a breach
-        that affects you, we will tell you and the relevant regulator as the law requires.
+        We encrypt sensitive payroll fields at rest with a per-organisation key, use TLS in transit, enforce role-based access on the server, and keep
+        a tamper-evident audit log. Read more on the <Link href="/security">security page</Link>. No system is perfectly secure; if we learn of a
+        breach that affects you, we will tell you and the relevant regulator as the law requires.
       </p>
 
       <h2>9. Your rights</h2>
       <p>
         Depending on where you live, you can ask to access, correct, delete or export your personal data, object to or restrict some processing, and
-        withdraw consent. If your data was entered by an organisation (for example you are a contractor), contact that organisation first; we will help
-        them respond. Email <a href={`mailto:${site.emails.privacy}`}>{site.emails.privacy}</a>. You can also complain to your data protection
+        withdraw consent. If your data was entered by an organisation (for example you are a contractor), contact that organisation first; we will
+        help them respond. Email <a href={`mailto:${site.emails.privacy}`}>{site.emails.privacy}</a>. You can also complain to your data protection
         authority, in Nigeria the Nigeria Data Protection Commission.
       </p>
 

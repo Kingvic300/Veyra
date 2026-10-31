@@ -44,7 +44,7 @@ export default function SecurityPage() {
       title="Security that does not depend on trusting us"
       intro="Veyra is built so the most important rules hold even if our servers are compromised: money moves only when your approvers sign, and only to the recipients they saw."
     >
-      <section className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8">
+      <section className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
         <div className="grid gap-px overflow-hidden rounded-panel border border-line bg-line md:grid-cols-2 xl:grid-cols-3">
           {CONTROLS.map(({ icon: Icon, title, body }) => (
             <div key={title} className="bg-surface p-7">
@@ -59,18 +59,18 @@ export default function SecurityPage() {
       </section>
 
       <section className="border-y border-line bg-[#f4f7f5]">
-        <div className="mx-auto grid max-w-[1200px] gap-12 px-5 py-20 sm:px-8 lg:grid-cols-2">
+        <div className="w-full grid gap-12 px-5 py-20 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
           <div>
             <h2 className="text-[30px] font-semibold tracking-[-0.025em]">What stays visible</h2>
             <div className="prose-veyra">
               <p>
-                Privacy on a public blockchain has limits, and we would rather you hear them from us. In the <strong>payroll vault</strong> mode, recipient
-                wallets, amounts, totals, approver wallets and timing are public on Starknet. Names and emails never leave Veyra.
+                Privacy on a public blockchain has limits, and we would rather you hear them from us. In the <strong>payroll vault</strong> mode,
+                recipient wallets, amounts, totals, approver wallets and timing are public on Starknet. Names and emails never leave Veyra.
               </p>
               <p>
-                In the experimental <strong>STRK20</strong> mode, transfers inside the privacy pool hide the sender, recipient and amount, but funding the
-                pool and withdrawing from it are public, and so is the fact that your paying account uses the pool. Approvals in this mode are enforced by
-                Veyra rather than by a contract.
+                In the experimental <strong>STRK20</strong> mode, transfers inside the privacy pool hide the sender, recipient and amount, but funding
+                the pool and withdrawing from it are public, and so is the fact that your paying account uses the pool. Approvals in this mode are
+                enforced by Veyra rather than by a contract.
               </p>
             </div>
           </div>
@@ -98,12 +98,15 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1200px] px-5 py-20 sm:px-8">
+      <section className="w-full px-5 py-20 sm:px-8 lg:px-16 xl:px-20">
         <h2 className="text-[30px] font-semibold tracking-[-0.025em]">Report a vulnerability</h2>
         <p className="mt-3 max-w-[60ch] text-[16px] text-ink-soft">
-          Email <a className="font-medium text-settle underline" href={`mailto:${site.emails.security}`}>{site.emails.security}</a> with the steps to
-          reproduce. We reply within two working days, keep you updated, and credit you if you wish. Please do not test against other customers&apos; data
-          or move real funds.
+          Email{' '}
+          <a className="font-medium text-settle underline" href={`mailto:${site.emails.security}`}>
+            {site.emails.security}
+          </a>{' '}
+          with the steps to reproduce. We reply within two working days, keep you updated, and credit you if you wish. Please do not test against
+          other customers&apos; data or move real funds.
         </p>
       </section>
     </MarketingPage>

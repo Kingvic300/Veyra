@@ -23,7 +23,7 @@ export default function DevelopersPage() {
       title="Build on the payroll core"
       intro="Everything that runs the hosted service is in the open: the API, the contracts, the chain adapters and the SDK. Integrate with it, self-host it, or add a network."
     >
-      <section className="mx-auto grid max-w-[1200px] gap-12 px-5 py-16 sm:px-8 lg:grid-cols-2">
+      <section className="w-full grid gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
         <div>
           <h2 className="text-[26px] font-semibold tracking-[-0.02em]">Run it locally</h2>
           <p className="mt-2 text-ink-soft">Postgres and Redis in Docker, the API on port 4000 and the dashboard on port 3000.</p>
@@ -70,7 +70,7 @@ const receipt = await veyra.batches.receipt(orgId, batch.id);`}</Code>
       </section>
 
       <section className="border-y border-line bg-[#f4f7f5]">
-        <div className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8">
+        <div className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
           <h2 className="text-[26px] font-semibold tracking-[-0.02em]">Packages</h2>
           <ul className="mt-6 divide-y divide-line rounded-panel border border-line bg-surface">
             {PACKAGES.map(([name, body]) => (
@@ -83,16 +83,20 @@ const receipt = await veyra.batches.receipt(orgId, batch.id);`}</Code>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1200px] gap-12 px-5 py-16 sm:px-8 lg:grid-cols-2">
+      <section className="w-full grid gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
         <div>
           <h2 className="text-[26px] font-semibold tracking-[-0.02em]">How a vault payout flows</h2>
           <ol className="mt-5 flex list-decimal flex-col gap-2 pl-5 text-[15px] text-ink-soft">
             <li>The API freezes the batch and computes its Poseidon items hash.</li>
-            <li>A wallet calls <code className="font-mono text-[13px]">propose_batch</code> with that hash.</li>
-            <li>Each approver wallet calls <code className="font-mono text-[13px]">approve_batch</code>.</li>
             <li>
-              An executor calls <code className="font-mono text-[13px]">execute_batch</code> with the recipients and amounts; the contract rechecks the
-              hash and pays everyone atomically.
+              A wallet calls <code className="font-mono text-[13px]">propose_batch</code> with that hash.
+            </li>
+            <li>
+              Each approver wallet calls <code className="font-mono text-[13px]">approve_batch</code>.
+            </li>
+            <li>
+              An executor calls <code className="font-mono text-[13px]">execute_batch</code> with the recipients and amounts; the contract rechecks
+              the hash and pays everyone atomically.
             </li>
             <li>The API reads the receipt and matches every PaymentSent and token Transfer event.</li>
           </ol>

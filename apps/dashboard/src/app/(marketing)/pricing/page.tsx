@@ -21,7 +21,13 @@ const PLANS = [
     cadence: 'per month',
     blurb: 'Hosted for small teams paying up to 25 contractors.',
     cta: { label: 'Start free', href: '/register' },
-    features: ['Up to 25 active contractors', 'Unlimited batches and approvers', 'Starknet vault and sandbox', 'Receipts and CSV export', 'Email support'],
+    features: [
+      'Up to 25 active contractors',
+      'Unlimited batches and approvers',
+      'Starknet vault and sandbox',
+      'Receipts and CSV export',
+      'Email support',
+    ],
     featured: true,
   },
   {
@@ -43,16 +49,28 @@ const PLANS = [
 ];
 
 const FAQ = [
-  ['Do you charge a fee on each payment?', 'No. Plans are a flat monthly price. Network fees are paid by your own wallets and go to the network, not to us.'],
-  ['Do you ever hold our money?', 'No. Funds stay in your vault contract or your own account. Veyra builds the transactions; your wallets sign them.'],
-  ['What happens if we stop paying for the hosted plan?', 'You keep full access to your vault on-chain, and you can export every receipt and the audit log. You can also move to the open-source version.'],
+  [
+    'Do you charge a fee on each payment?',
+    'No. Plans are a flat monthly price. Network fees are paid by your own wallets and go to the network, not to us.',
+  ],
+  [
+    'Do you ever hold our money?',
+    'No. Funds stay in your vault contract or your own account. Veyra builds the transactions; your wallets sign them.',
+  ],
+  [
+    'What happens if we stop paying for the hosted plan?',
+    'You keep full access to your vault on-chain, and you can export every receipt and the audit log. You can also move to the open-source version.',
+  ],
   ['Can we try it first?', 'Yes. Every account can create a sandbox organisation that runs the full flow with test funds.'],
 ];
 
 export default function PricingPage() {
   return (
-    <MarketingPage title="Simple pricing, no fee per payment" intro="Self-host for free, or let us run Veyra for you. Every plan includes the sandbox so you can test the full flow first.">
-      <section className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8">
+    <MarketingPage
+      title="Simple pricing, no fee per payment"
+      intro="Self-host for free, or let us run Veyra for you. Every plan includes the sandbox so you can test the full flow first."
+    >
+      <section className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {PLANS.map((p) => (
             <div
@@ -61,7 +79,9 @@ export default function PricingPage() {
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">{p.name}</h2>
-                {p.featured && <span className="rounded-full bg-settle-wash px-2.5 py-0.5 text-[12px] font-medium text-settle-strong">Most teams</span>}
+                {p.featured && (
+                  <span className="rounded-full bg-settle-wash px-2.5 py-0.5 text-[12px] font-medium text-settle-strong">Most teams</span>
+                )}
               </div>
               <p className="mt-1 text-sm text-ink-soft">{p.blurb}</p>
               <p className="mt-6">
@@ -100,7 +120,7 @@ export default function PricingPage() {
       </section>
 
       <section className="border-t border-line">
-        <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_2fr]">
+        <div className="w-full grid gap-10 px-5 py-20 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_2fr]">
           <h2 className="text-[30px] font-semibold tracking-[-0.025em]">Questions</h2>
           <dl className="divide-y divide-line border-y border-line">
             {FAQ.map(([q, a]) => (

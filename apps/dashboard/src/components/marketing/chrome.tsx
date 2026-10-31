@@ -39,8 +39,10 @@ export function MarketingHeader() {
   }, []);
 
   return (
-    <header className={clsx('sticky top-0 z-40 border-b bg-paper/85 backdrop-blur transition-colors', scrolled ? 'border-line' : 'border-transparent')}>
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-8 px-5 sm:px-8">
+    <header
+      className={clsx('sticky top-0 z-40 border-b bg-paper/85 backdrop-blur transition-colors', scrolled ? 'border-line' : 'border-transparent')}
+    >
+      <div className="mx-auto flex h-16 items-center gap-8 px-5 sm:px-8">
         <Link href="/" aria-label="Veyra home">
           <Logo />
         </Link>
@@ -56,13 +58,22 @@ export function MarketingHeader() {
           ))}
         </nav>
         <div className="ml-auto hidden items-center gap-2 md:flex">
-          <a href={site.githubUrl} target="_blank" rel="noreferrer" className="rounded-control p-2 text-ink-soft hover:bg-wash hover:text-ink" aria-label="Veyra on GitHub">
+          <a
+            href={site.githubUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-control p-2 text-ink-soft hover:bg-wash hover:text-ink"
+            aria-label="Veyra on GitHub"
+          >
             <GithubMark />
           </a>
           <Link href="/login" className="rounded-control px-3 py-2 text-[14.5px] text-ink-soft hover:text-ink">
             Sign in
           </Link>
-          <Link href="/register" className="inline-flex h-10 items-center rounded-control bg-ink px-4 text-sm font-medium text-white hover:bg-settle-strong">
+          <Link
+            href="/register"
+            className="inline-flex h-10 items-center rounded-control bg-ink px-4 text-sm font-medium text-white hover:bg-settle-strong"
+          >
             Start free
           </Link>
         </div>
@@ -128,7 +139,7 @@ const FOOTER = [
 export function MarketingFooter() {
   return (
     <footer className="border-t border-line bg-[#f4f7f5]">
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="w-full grid gap-10 px-5 py-14 sm:px-8 lg:px-16 xl:px-20 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <Logo />
           <p className="mt-4 max-w-[34ch] text-sm text-ink-soft">{site.tagline}</p>
@@ -163,7 +174,7 @@ export function MarketingFooter() {
         ))}
       </div>
       <div className="border-t border-line">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap justify-between gap-3 px-5 py-5 text-[12.5px] text-ink-faint sm:px-8">
+        <div className="w-full flex flex-wrap justify-between gap-3 px-5 py-5 text-[12.5px] text-ink-faint sm:px-8 lg:px-16 xl:px-20">
           <span>
             © {new Date().getFullYear()} {site.legalEntity}
           </span>

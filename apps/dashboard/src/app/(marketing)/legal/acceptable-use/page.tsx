@@ -18,7 +18,10 @@ export default function AcceptableUsePage() {
         <li>Hide the true source, purpose or recipient of funds from authorities who are entitled to know them.</li>
         <li>Pay for illegal goods or services, or for content that exploits children.</li>
         <li>Collect or store personal data about contractors without a lawful basis or without telling them.</li>
-        <li>Break, probe or overload the service, other users&apos; data or the blockchain networks it connects to, except through our responsible disclosure process.</li>
+        <li>
+          Break, probe or overload the service, other users&apos; data or the blockchain networks it connects to, except through our responsible
+          disclosure process.
+        </li>
         <li>Pretend to be another person or organisation, or misrepresent your authority to approve payments.</li>
         <li>Resell access to the hosted service without a written agreement with us.</li>
       </ul>
