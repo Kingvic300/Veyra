@@ -137,6 +137,12 @@ describe('StarknetVaultAdapter', () => {
     expect(v.method).toBe('onchain-events');
   });
 
+  it('matches padded and unpadded addresses', async () => {
+    const padded = { ...plan, items: plan.items.map((i) => ({ ...i, recipient: `0x${BigInt(i.recipient).toString(16).padStart(64, '0')}` })) };
+    const a = new StarknetVaultAdapter({ network: 'sepolia', rpc: rpc({ receipt: ok(executionEvents(plan)) }) });
+    expect((await a.verifyPayment(ref, padded)).mismatches).toEqual([]);
+  });
+
   it('flags a tampered amount', async () => {
     const a = new StarknetVaultAdapter({ network: 'sepolia', rpc: rpc({ receipt: ok(executionEvents(plan, true)) }) });
     const v = await a.verifyPayment(ref, plan);

@@ -179,6 +179,11 @@ abstract class StarknetAdapterBase implements ChainAdapter {
   }
 }
 
+/** Padded lowercase form of any felt-encoded address. */
+function canonical(address: string): string {
+  return normaliseAddress(num.toHex(address));
+}
+
 function isNotFound(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
   return /not found|TXN_HASH_NOT_FOUND|\b29\b/i.test(message);
@@ -285,12 +290,14 @@ export class StarknetVaultAdapter extends StarknetAdapterBase {
       if (executed.total !== plan.total) mismatches.push(`Executed total ${executed.total} differs from ${plan.total}`);
     }
 
+    // Compare canonical (padded) addresses on both sides.
+    const expected: BatchPlan = { ...plan, items: plan.items.map((i) => ({ recipient: canonical(i.recipient), amount: i.amount })) };
     const payments = findPayments(events, vault).filter((p) => p.batchId === batchId);
-    mismatches.push(...compareTransfers(plan, payments.map((p) => ({ to: num.toHex(p.to), amount: p.amount }))).map((m) => `Vault event: ${m}`));
+    mismatches.push(...compareTransfers(expected, payments.map((p) => ({ to: canonical(p.to), amount: p.amount }))).map((m) => `Vault event: ${m}`));
 
     // Independent check against the token's own Transfer events.
     const transfers = findTokenTransfers(events, plan.asset.address).filter((t) => sameAddress(t.from, vault));
-    mismatches.push(...compareTransfers(plan, transfers.map((t) => ({ to: num.toHex(t.to), amount: t.amount }))).map((m) => `Token event: ${m}`));
+    mismatches.push(...compareTransfers(expected, transfers.map((t) => ({ to: canonical(t.to), amount: t.amount }))).map((m) => `Token event: ${m}`));
     details.push(`${payments.length} PaymentSent events, ${transfers.length} token transfers from the vault`);
 
     return { verified: mismatches.length === 0, method: 'onchain-events', checkedAt, details, mismatches };
