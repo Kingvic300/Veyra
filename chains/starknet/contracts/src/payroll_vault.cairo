@@ -174,7 +174,9 @@ pub mod PayrollVault {
             items_hash: felt252,
         ) {
             let caller = get_caller_address();
-            assert(self.approvers.read(caller) || caller == self.admin.read(), Errors::NOT_AUTHORISED);
+            assert(
+                self.approvers.read(caller) || caller == self.admin.read(), Errors::NOT_AUTHORISED,
+            );
             assert(batch_id != 0 && items_hash != 0, Errors::BAD_BATCH);
             assert(token.is_non_zero(), Errors::ZERO_ADDRESS);
             assert(total != 0, Errors::ZERO_AMOUNT);
@@ -200,7 +202,9 @@ pub mod PayrollVault {
                 );
             self
                 .emit(
-                    BatchProposed { batch_id, proposer: caller, token, total, item_count, items_hash },
+                    BatchProposed {
+                        batch_id, proposer: caller, token, total, item_count, items_hash,
+                    },
                 );
         }
 
@@ -234,7 +238,9 @@ pub mod PayrollVault {
             amounts: Span<u256>,
         ) {
             let caller = get_caller_address();
-            assert(self.approvers.read(caller) || caller == self.admin.read(), Errors::NOT_AUTHORISED);
+            assert(
+                self.approvers.read(caller) || caller == self.admin.read(), Errors::NOT_AUTHORISED,
+            );
             let mut batch = self._live_batch(batch_id);
             assert(batch.approvals >= self.threshold.read(), Errors::THRESHOLD_NOT_MET);
             assert(recipients.len() == amounts.len(), Errors::LENGTH_MISMATCH);
@@ -326,7 +332,9 @@ pub mod PayrollVault {
             self.batches.read(batch_id)
         }
 
-        fn has_approved(self: @ContractState, batch_id: felt252, approver: ContractAddress) -> bool {
+        fn has_approved(
+            self: @ContractState, batch_id: felt252, approver: ContractAddress,
+        ) -> bool {
             self.approvals.read((batch_id, approver))
         }
 
@@ -405,7 +413,9 @@ pub mod PayrollVault {
         }
 
         fn _set_threshold(ref self: ContractState, threshold: u32) {
-            assert(threshold >= 1 && threshold <= self.approver_count.read(), Errors::BAD_THRESHOLD);
+            assert(
+                threshold >= 1 && threshold <= self.approver_count.read(), Errors::BAD_THRESHOLD,
+            );
             self.threshold.write(threshold);
             self.emit(ThresholdChanged { threshold });
         }

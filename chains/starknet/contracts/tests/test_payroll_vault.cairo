@@ -77,7 +77,9 @@ fn amounts() -> Span<u256> {
 }
 
 fn propose_as(s: Setup, caller: ContractAddress) {
-    let hash = s.vault.compute_items_hash(BATCH_ID, s.token.contract_address, recipients(), amounts());
+    let hash = s
+        .vault
+        .compute_items_hash(BATCH_ID, s.token.contract_address, recipients(), amounts());
     start_cheat_caller_address(s.vault.contract_address, caller);
     s.vault.propose_batch(BATCH_ID, s.token.contract_address, 4_000, 3, hash);
     stop_cheat_caller_address(s.vault.contract_address);
@@ -242,7 +244,9 @@ fn test_execute_rejects_swapped_recipient() {
     s
         .vault
         .execute_batch(
-            BATCH_ID, array![addr('contractor_1'), addr('attacker'), addr('contractor_3')].span(), amounts(),
+            BATCH_ID,
+            array![addr('contractor_1'), addr('attacker'), addr('contractor_3')].span(),
+            amounts(),
         );
 }
 
@@ -409,7 +413,9 @@ fn test_zero_total_rejected() {
 fn test_item_limit() {
     let s = setup();
     start_cheat_caller_address(s.vault.contract_address, alice());
-    s.vault.propose_batch(BATCH_ID, s.token.contract_address, 1, PayrollVault::MAX_BATCH_ITEMS + 1, 1);
+    s
+        .vault
+        .propose_batch(BATCH_ID, s.token.contract_address, 1, PayrollVault::MAX_BATCH_ITEMS + 1, 1);
 }
 
 /// Cross-language vector: @veyra/starknet-adapter must produce the same hash.
@@ -428,4 +434,5 @@ fn test_items_hash_vector() {
     assert_eq!(hash, ITEMS_HASH_VECTOR);
 }
 
-const ITEMS_HASH_VECTOR: felt252 = 0x73961680fa988d659b310e4f8c554fd23044994b55bbd9700257f2994a44fe6;
+const ITEMS_HASH_VECTOR: felt252 =
+    0x73961680fa988d659b310e4f8c554fd23044994b55bbd9700257f2994a44fe6;
