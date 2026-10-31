@@ -35,7 +35,6 @@ export function MonthlyColumns({ data, asset }: { data: MonthlySpend[]; asset: A
           <div className="absolute inset-x-0 top-0 border-t border-dashed border-line" />
           <div className="absolute inset-x-0 border-t border-dashed border-line" style={{ top: H / 2 }} />
           <div className="absolute inset-x-0 bottom-0 border-t border-line-strong" />
-          <span className="absolute -top-2 right-0 bg-surface pl-1 text-[11px] text-ink-faint">{compact(top, asset.decimals)}</span>
         </div>
         <div className="relative grid items-end gap-0.5" style={{ height: H, gridTemplateColumns: `repeat(${data.length}, minmax(0,1fr))` }}>
           {data.map((d, i) => {

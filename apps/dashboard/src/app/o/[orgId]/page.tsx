@@ -85,7 +85,7 @@ export default function OverviewPage() {
             </span>
           )}
         </Figure>
-        <Figure label="Paid since you started" loading={!s} note={s ? `${s.completedPayments} payments in ${s.completedBatches} batches` : undefined}>
+        <Figure label="Paid since you started" loading={!s} note={s ? `${s.completedPayments} payment${s.completedPayments === 1 ? '' : 's'} in ${s.completedBatches} batch${s.completedBatches === 1 ? '' : 'es'}` : undefined}>
           {s && amount(s.paidAllTime, s.asset)}
         </Figure>
         <Figure label="Waiting for approval" loading={!s} note={s?.awaitingApproval.count ? amount(s.awaitingApproval.total, s.asset) : 'Nothing pending'}>

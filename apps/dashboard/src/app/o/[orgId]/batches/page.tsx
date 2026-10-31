@@ -55,7 +55,7 @@ export default function BatchesPage() {
         {[
           { label: 'Waiting for approval', value: s ? `${s.awaitingApproval.count}` : null, note: s ? amount(s.awaitingApproval.total, s.asset) : '', tone: 'text-pending' },
           { label: 'Approved, ready to pay', value: s ? `${s.readyToPay.count}` : null, note: s ? amount(s.readyToPay.total, s.asset) : '', tone: 'text-ink' },
-          { label: 'Paid this month', value: s ? amount(s.paidThisMonth, s.asset) : null, note: s ? `${s.monthly.at(-1)?.batches ?? 0} batches settled` : '', tone: 'text-settle-strong' },
+          { label: 'Paid this month', value: s ? amount(s.paidThisMonth, s.asset) : null, note: s ? `${s.monthly.at(-1)?.batches ?? 0} settled this month` : '', tone: 'text-settle-strong' },
           { label: 'Need attention', value: s ? `${s.failed + s.drafts}` : null, note: s ? `${s.drafts} drafts, ${s.failed} failed` : '', tone: s && s.failed > 0 ? 'text-fail' : 'text-ink' },
         ].map((f) => (
           <div key={f.label} className="bg-surface p-5">
