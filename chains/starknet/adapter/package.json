@@ -1,0 +1,21 @@
+{
+  "name": "@veyra/starknet-adapter",
+  "version": "0.1.0",
+  "description": "Veyra chain adapter for Starknet: PayrollVault (transparent) and STRK20 (experimental private) execution",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@veyra/chain-adapter": "0.1.0",
+    "@veyra/core": "0.1.0",
+    "starknet": "^10.8.0"
+  }
+}
