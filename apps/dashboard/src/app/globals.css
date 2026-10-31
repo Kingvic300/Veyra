@@ -80,6 +80,19 @@
   transform-origin: left;
   animation: rail-fill 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+@keyframes rail-dot {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.rail-dot {
+  animation: rail-dot 300ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
 @keyframes pulse-dot {
   0%,
   100% {
@@ -170,6 +183,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .toast-in,
+  .rail-dot,
   .loader-stroke,
   .loader-block,
   .loader-rail,
@@ -187,4 +201,76 @@
   body {
     background: white;
   }
+}
+
+/* Long-form legal and documentation text. */
+.prose-veyra {
+  max-width: 72ch;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--color-ink-soft);
+}
+.prose-veyra h2 {
+  margin-top: 2.6em;
+  margin-bottom: 0.6em;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.prose-veyra h3 {
+  margin-top: 1.8em;
+  margin-bottom: 0.4em;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.prose-veyra p,
+.prose-veyra ul,
+.prose-veyra ol,
+.prose-veyra table {
+  margin-top: 0.9em;
+}
+.prose-veyra ul {
+  list-style: disc;
+  padding-left: 1.3em;
+}
+.prose-veyra ol {
+  list-style: decimal;
+  padding-left: 1.3em;
+}
+.prose-veyra li {
+  margin-top: 0.35em;
+}
+.prose-veyra strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.prose-veyra a {
+  color: var(--color-settle);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-veyra code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--color-wash);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: var(--color-ink);
+}
+.prose-veyra table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+.prose-veyra th,
+.prose-veyra td {
+  border-top: 1px solid var(--color-line);
+  padding: 0.6em 0.8em 0.6em 0;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-veyra th {
+  color: var(--color-ink);
+  font-weight: 600;
 }
