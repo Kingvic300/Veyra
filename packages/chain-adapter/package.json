@@ -1,0 +1,17 @@
+{
+  "name": "@veyra/chain-adapter",
+  "version": "0.1.0",
+  "description": "Veyra chain adapter interface, capability model and simulated adapter",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@veyra/core": "0.1.0"
+  }
+}
