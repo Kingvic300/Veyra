@@ -69,6 +69,49 @@ const receipt = await veyra.batches.receipt(orgId, batch.id);`}</Code>
         </div>
       </section>
 
+      <section className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-[26px] font-semibold tracking-[-0.02em]">The REST API at a glance</h2>
+            <p className="mt-2 max-w-[60ch] text-ink-soft">
+              JSON over HTTPS with bearer tokens. Every write is permission-checked and recorded in the audit log.
+            </p>
+          </div>
+          <a href={`${site.githubUrl}/blob/main/docs/api.md`} target="_blank" rel="noreferrer" className="font-medium text-settle hover:underline">
+            Full API reference
+          </a>
+        </div>
+        <div className="mt-6 overflow-x-auto rounded-panel border border-line bg-surface">
+          <table className="w-full min-w-[640px] text-sm">
+            <tbody>
+              {(
+                [
+                  ['POST', '/v1/organisations/:org/batches', 'Create a draft batch'],
+                  ['POST', '/v1/organisations/:org/batches/:id/submit', 'Freeze contents and compute commitments'],
+                  ['GET', '/v1/organisations/:org/batches/:id/chain-actions/:kind', 'Unsigned call for the wallet to sign'],
+                  ['POST', '/v1/organisations/:org/batches/:id/approvals', 'Record an approval (with tx hash on-chain)'],
+                  ['POST', '/v1/organisations/:org/batches/:id/execute', 'Report the settlement transaction'],
+                  ['GET', '/v1/organisations/:org/batches/:id/receipt', 'Verified receipt as JSON or CSV'],
+                  ['GET', '/v1/organisations/:org/audit/verify', 'Recompute the audit hash chain'],
+                ] as const
+              ).map(([m, path, what]) => (
+                <tr key={path} className="border-t border-line first:border-t-0">
+                  <td className="w-20 px-5 py-3">
+                    <span
+                      className={`rounded px-2 py-0.5 font-mono text-[12px] font-medium ${m === 'GET' ? 'bg-wash text-ink-soft' : 'bg-settle-wash text-settle-strong'}`}
+                    >
+                      {m}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 font-mono text-[13px]">{path}</td>
+                  <td className="px-5 py-3 text-ink-soft">{what}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section className="border-y border-line bg-[#f4f7f5]">
         <div className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
           <h2 className="text-[26px] font-semibold tracking-[-0.02em]">Packages</h2>
