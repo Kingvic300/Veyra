@@ -8,6 +8,20 @@
       "when": 1793467793911,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793471415628,
+      "tag": "0001_password_resets",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793473658928,
+      "tag": "0002_invitations",
+      "breakpoints": true
     }
   ]
 }

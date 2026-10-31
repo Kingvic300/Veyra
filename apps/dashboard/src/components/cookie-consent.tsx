@@ -56,33 +56,26 @@ export function CookieConsent() {
         <div
           role="region"
           aria-label="Cookie consent"
-          className="no-print toast-in fixed bottom-4 left-4 z-[55] w-[min(420px,calc(100vw-2rem))] rounded-panel border border-line bg-surface p-5 shadow-[0_20px_50px_-24px_rgba(19,32,27,0.5)]"
+          className="no-print toast-in fixed inset-x-3 bottom-3 z-[55] mx-auto flex max-w-3xl flex-col gap-3 rounded-panel border border-line bg-surface px-4 py-3 shadow-[0_20px_50px_-24px_rgba(19,32,27,0.5)] sm:flex-row sm:items-center"
         >
-          <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-wash text-ink-soft">
-              <Cookie className="size-[18px]" aria-hidden />
+          <p className="flex flex-1 items-start gap-2.5 text-[13px] text-ink-soft">
+            <Cookie className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>
+              We use one cookie to keep you signed in. May we also count page visits anonymously?{' '}
+              <Link href="/legal/cookies" className="font-medium text-settle underline-offset-2 hover:underline">
+                Cookie policy
+              </Link>
             </span>
-            <div className="text-sm">
-              <p className="font-semibold">Your privacy choices</p>
-              <p className="mt-1 text-ink-soft">
-                We use one essential cookie to keep you signed in. With your permission we would also measure page visits anonymously to improve
-                Veyra. Read the{' '}
-                <Link href="/legal/cookies" className="font-medium text-settle underline-offset-2 hover:underline">
-                  cookie policy
-                </Link>
-                .
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <button type="button" onClick={() => decide(false)} className="h-9 rounded-control border border-line-strong text-[13px] font-medium hover:bg-wash">
-              Essential only
+          </p>
+          <div className="flex shrink-0 gap-2">
+            <button type="button" onClick={() => setPrefsOpen(true)} className="h-8 rounded-control px-2.5 text-[13px] font-medium text-ink-soft hover:bg-wash hover:text-ink">
+              Settings
             </button>
-            <button type="button" onClick={() => setPrefsOpen(true)} className="h-9 rounded-control border border-line-strong text-[13px] font-medium hover:bg-wash">
-              Choose
+            <button type="button" onClick={() => decide(false)} className="h-8 rounded-control border border-line-strong px-3 text-[13px] font-medium hover:bg-wash">
+              No thanks
             </button>
-            <button type="button" onClick={() => decide(true)} className="h-9 rounded-control bg-settle text-[13px] font-medium text-white hover:bg-settle-strong">
-              Accept all
+            <button type="button" onClick={() => decide(true)} className="h-8 rounded-control bg-settle px-3 text-[13px] font-medium text-white hover:bg-settle-strong">
+              Allow
             </button>
           </div>
         </div>

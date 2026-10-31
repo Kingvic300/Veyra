@@ -10,14 +10,18 @@
   --color-surface: #ffffff;
   --color-ink: #13201b;
   --color-ink-soft: #4a5a53;
-  --color-ink-faint: #7d8b85;
+  /* 4.5:1 on paper, surface and wash (WCAG AA for small text). */
+  --color-ink-faint: #66716d;
   --color-line: #dce3df;
   --color-line-strong: #c3cec8;
+  /* Form field edges: 3:1 against surface (WCAG 1.4.11). */
+  --color-field: #8c948f;
   --color-wash: #eef4f1;
   --color-settle: #0b6b4f;
   --color-settle-strong: #08523d;
   --color-settle-wash: #e3f1eb;
-  --color-pending: #b7791f;
+  /* 4.5:1 as text on pending-wash and surface. */
+  --color-pending: #976419;
   --color-pending-wash: #fbf1df;
   --color-fail: #c0352b;
   --color-fail-wash: #fbe9e7;
@@ -273,4 +277,17 @@
 .prose-veyra th {
   color: var(--color-ink);
   font-weight: 600;
+}
+
+/* Keep browser-autofilled fields (saved passwords, emails) on-theme instead of yellow or olive. */
+input:autofill,
+input:-webkit-autofill {
+  box-shadow: inset 0 0 0 1000px var(--color-surface);
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+  transition: background-color 9999s ease-out 0s;
+}
+input:autofill.bg-wash,
+input:-webkit-autofill.bg-wash {
+  box-shadow: inset 0 0 0 1000px var(--color-wash);
 }

@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { eq } from 'drizzle-orm';
-import type { LoginInput, RegisterInput, User } from '@veyra/core';
+import { sql } from 'drizzle-orm';
+import type { LoginInput, RegisterInput, UpdateProfileInput, User } from '@veyra/core';
 import { DB, schema, type Db } from '../db/database.js';
 import { conflict, notFound, unauthorised } from '../common/errors.js';
 import { DUMMY_HASH, hashPassword, verifyPassword } from './password.js';
@@ -26,7 +27,7 @@ export class AuthService {
       .insert(schema.users)
       .values({ email: input.email, name: input.name, passwordHash: await hashPassword(input.password) })
       .returning();
-    return { user: toUser(row!), token: await this.issue(row!.id, row!.email) };
+    return { user: toUser(row!), token: await this.issue(row!.id, row!.email, row!.sessionVersion) };
   }
 
   async login(input: LoginInput): Promise<{ user: User; token: string }> {
@@ -34,7 +35,21 @@ export class AuthService {
     // Always run the KDF so response time does not reveal whether the email exists.
     const ok = await verifyPassword(input.password, row?.passwordHash ?? DUMMY_HASH);
     if (!row || !ok) throw unauthorised('Invalid email or password');
-    return { user: toUser(row), token: await this.issue(row.id, row.email) };
+    return { user: toUser(row), token: await this.issue(row.id, row.email, row.sessionVersion) };
+  }
+
+  async updateProfile(userId: string, input: UpdateProfileInput): Promise<User> {
+    const [row] = await this.db.update(schema.users).set({ name: input.name }).where(eq(schema.users.id, userId)).returning();
+    if (!row) throw notFound('User');
+    return toUser(row);
+  }
+
+  /** Invalidate every session for this user, including the current one. */
+  async signOutEverywhere(userId: string): Promise<void> {
+    await this.db
+      .update(schema.users)
+      .set({ sessionVersion: sql`${schema.users.sessionVersion} + 1` })
+      .where(eq(schema.users.id, userId));
   }
 
   async me(userId: string): Promise<User> {
@@ -43,7 +58,8 @@ export class AuthService {
     return toUser(row);
   }
 
-  private issue(userId: string, email: string): Promise<string> {
-    return this.jwt.signAsync({ sub: userId, email }, { expiresIn: SESSION_TTL_SECONDS });
+  /** `sv` is the user's session version; changing the password invalidates older tokens. */
+  issue(userId: string, email: string, sessionVersion: number): Promise<string> {
+    return this.jwt.signAsync({ sub: userId, email, sv: sessionVersion }, { expiresIn: SESSION_TTL_SECONDS });
   }
 }

@@ -14,7 +14,6 @@ interface WalletState {
   wallet: ConnectedWallet | null;
   options: WalletOption[];
   connecting: boolean;
-  error: string | null;
   connect: (option: WalletOption) => Promise<ConnectedWallet | null>;
   disconnect: () => void;
 }
@@ -26,7 +25,7 @@ function WalletProvider({ children }: { children: ReactNode }) {
   const [wallet, setWallet] = useState<ConnectedWallet | null>(null);
   const [options, setOptions] = useState<WalletOption[]>([]);
   const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     const scan = () => setOptions(discoverWallets());
@@ -42,26 +41,25 @@ function WalletProvider({ children }: { children: ReactNode }) {
 
   const connect = useCallback(async (option: WalletOption) => {
     setConnecting(true);
-    setError(null);
     try {
       const w = await option.connect();
       setWallet(w);
       localStorage.setItem(LAST_WALLET, option.id);
       return w;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'The wallet refused the connection');
+      toast('fail', err instanceof Error ? err.message : 'The wallet refused the connection');
       return null;
     } finally {
       setConnecting(false);
     }
-  }, []);
+  }, [toast]);
 
   const disconnect = useCallback(() => {
     setWallet(null);
     localStorage.removeItem(LAST_WALLET);
   }, []);
 
-  const value = useMemo(() => ({ wallet, options, connecting, error, connect, disconnect }), [wallet, options, connecting, error, connect, disconnect]);
+  const value = useMemo(() => ({ wallet, options, connecting, connect, disconnect }), [wallet, options, connecting, connect, disconnect]);
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 }
 

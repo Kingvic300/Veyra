@@ -11,9 +11,9 @@ import { keys, useMe, useOrg } from '@/lib/hooks';
 
 const ROLE_COPY: Record<Role, string> = {
   OWNER: 'Everything, including adding owners',
-  ADMIN: 'Manage the team, contractors and batches; approve and pay',
-  APPROVER: 'Review and approve batches',
-  VIEWER: 'See totals, treasury and the audit log, not contractor details',
+  ADMIN: 'Manage the team, people and payouts. Can approve and pay.',
+  APPROVER: 'Check and approve payouts',
+  VIEWER: 'See totals, funds and history, but not who is paid what',
 };
 
 const label = (r: Role) => r.charAt(0) + r.slice(1).toLowerCase();
@@ -26,28 +26,46 @@ export default function TeamPage() {
   const { wallet } = useWallet();
   const [adding, setAdding] = useState(false);
   const members = useQuery({ queryKey: keys.members(org.orgId), queryFn: () => api.members.list(org.orgId) });
+  const invites = useQuery({ queryKey: [...keys.members(org.orgId), 'invitations'], queryFn: () => api.invitations.list(org.orgId) });
   const o = org.data!;
   const manage = org.can('members:manage');
   const invalidate = () => qc.invalidateQueries({ queryKey: keys.members(org.orgId) });
 
   const add = useMutation({
     mutationFn: (f: FormData) =>
-      api.members.add(org.orgId, {
-        email: String(f.get('email')),
+      api.invitations.invite(org.orgId, {
+        email: String(f.get('email')).trim(),
         role: String(f.get('role')) as Role,
         walletAddress: String(f.get('wallet') || '') || null,
       }),
-    onSuccess: async () => {
+    onSuccess: async (r) => {
       setAdding(false);
-      toast('settle', 'Teammate added');
+      if (r.status === 'added')
+        toast('settle', `${r.member.name} joined the team`, 'They already had a Veyra account, so they are in straight away.');
+      else
+        toast(
+          'settle',
+          `Invitation sent to ${r.invitation.email}`,
+          'They join as soon as they open the link and create an account. The link works for 7 days.',
+        );
       await invalidate();
     },
+    onError: (err) => toast('fail', errorMessage(err)),
   });
 
   const update = useMutation({
     mutationFn: ({ m, patch }: { m: Member; patch: { role?: Role; walletAddress?: string | null } }) => api.members.update(org.orgId, m.id, patch),
     onSuccess: async () => {
       toast('settle', 'Saved');
+      await invalidate();
+    },
+    onError: (err) => toast('fail', errorMessage(err)),
+  });
+
+  const revoke = useMutation({
+    mutationFn: (id: string) => api.invitations.revoke(org.orgId, id),
+    onSuccess: async () => {
+      toast('neutral', 'Invitation cancelled');
       await invalidate();
     },
     onError: (err) => toast('fail', errorMessage(err)),
@@ -74,14 +92,14 @@ export default function TeamPage() {
     <>
       <PageHeader
         title="Team"
-        description="Who can prepare, approve and pay. Approvals count only from people whose role allows it."
-        actions={manage && <Button onClick={() => setAdding(true)}>Add teammate</Button>}
+        description="Everyone who can see, prepare, approve or pay your payouts."
+        actions={manage && <Button onClick={() => setAdding(true)}>Invite someone</Button>}
       />
 
       {onChain && self && !self.walletAddress && (
         <div className="mb-6">
           <Notice tone="pending" title="Link your approver wallet">
-            The vault checks approvals by wallet. Connect the wallet you approve with, then link it below.
+            The vault only accepts approvals from known wallets. Connect the wallet you approve with, then link it below.
             {wallet && (
               <div className="mt-3">
                 <Button size="sm" onClick={() => update.mutate({ m: self, patch: { walletAddress: wallet.address } })} loading={update.isPending}>
@@ -166,6 +184,44 @@ export default function TeamPage() {
         </Panel>
       )}
 
+      {!!invites.data?.length && (
+        <Panel title="Waiting to join" className="mt-6" padded={false}>
+          <ul className="divide-y divide-line">
+            {invites.data.map((i) => (
+              <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3.5 text-sm">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium">{i.email}</span>
+                  <span className="block text-[13px] text-ink-faint">
+                    Invited as {label(i.role).toLowerCase()} · link expires {new Date(i.expiresAt).toLocaleDateString()}
+                  </span>
+                </span>
+                {manage && (
+                  <span className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      loading={add.isPending && add.variables?.get('email') === i.email}
+                      onClick={() => {
+                        const f = new FormData();
+                        f.set('email', i.email);
+                        f.set('role', i.role);
+                        if (i.walletAddress) f.set('wallet', i.walletAddress);
+                        add.mutate(f);
+                      }}
+                    >
+                      Resend
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => revoke.mutate(i.id)} loading={revoke.isPending && revoke.variables === i.id}>
+                      Cancel
+                    </Button>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+
       <dl className="mt-8 grid gap-4 text-sm sm:grid-cols-2">
         {ROLES.map((r) => (
           <div key={r} className="rounded-control border border-line bg-surface px-4 py-3">
@@ -175,9 +231,9 @@ export default function TeamPage() {
         ))}
       </dl>
 
-      <Dialog open={adding} onClose={() => setAdding(false)} title="Add a teammate">
+      <Dialog open={adding} onClose={() => setAdding(false)} title="Invite someone">
         <form onSubmit={onAdd} className="flex flex-col gap-4">
-          <Field label="Email" htmlFor="email" hint="They need a Veyra account with this email.">
+          <Field label="Their email" htmlFor="email" hint="We email them a link to join. If they already use Veyra, they join straight away.">
             <Input id="email" name="email" type="email" required />
           </Field>
           <Field label="Role" htmlFor="role">
@@ -190,17 +246,16 @@ export default function TeamPage() {
             </Select>
           </Field>
           {onChain && (
-            <Field label="Approver wallet (optional)" htmlFor="wallet" hint="Must also be an approver in the PayrollVault contract.">
+            <Field label="Approver wallet (optional)" htmlFor="wallet" hint="This wallet must also be set as an approver in your vault contract.">
               <Input id="wallet" name="wallet" mono placeholder="0x…" />
             </Field>
           )}
-          {add.error && <Notice tone="fail">{errorMessage(add.error)}</Notice>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
               Close
             </Button>
             <Button type="submit" loading={add.isPending}>
-              Add teammate
+              Send invitation
             </Button>
           </div>
         </form>

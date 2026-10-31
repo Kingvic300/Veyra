@@ -29,8 +29,27 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   passwordHash: text('password_hash').notNull(),
+  /** Bumped on password change; sessions issued with an older value are rejected. */
+  sessionVersion: integer('session_version').notNull().default(0),
   createdAt: createdAt(),
 });
+
+/** Single-use password reset tokens. Only a SHA-256 hash of the token is stored. */
+export const passwordResets = pgTable(
+  'password_resets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    requestedIp: text('requested_ip'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('password_resets_user_idx').on(t.userId)],
+);
 
 export const organisations = pgTable('organisations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -66,6 +85,30 @@ export const members = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex('members_org_user_idx').on(t.organisationId, t.userId)],
+);
+
+/**
+ * Invitations for people without a Veyra account. The emailed link carries a
+ * random token; only its SHA-256 hash is stored. Accepting deletes the row.
+ */
+export const invitations = pgTable(
+  'invitations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organisationId: uuid('organisation_id')
+      .notNull()
+      .references(() => organisations.id, { onDelete: 'cascade' }),
+    email: text('email').notNull(),
+    role: text('role').notNull(),
+    walletAddress: text('wallet_address'),
+    tokenHash: text('token_hash').notNull().unique(),
+    invitedBy: uuid('invited_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('invitations_org_email_idx').on(t.organisationId, t.email)],
 );
 
 export const contractors = pgTable(

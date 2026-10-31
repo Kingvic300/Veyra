@@ -4,6 +4,7 @@ import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import type { AuditEvent } from '@veyra/core';
+import { useToast } from '@/components/providers';
 import { Button, Notice, PageHeader, Panel, Spinner } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { date, shortHash } from '@/lib/format';
@@ -21,14 +22,15 @@ export default function AuditPage() {
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (last: AuditEvent[]) => (last.length === PAGE ? last.at(-1)!.seq : undefined),
   });
-  const verify = useMutation({ mutationFn: () => api.audit.verify(org.orgId) });
+  const toast = useToast();
+  const verify = useMutation({ mutationFn: () => api.audit.verify(org.orgId), onError: (err) => toast('fail', errorMessage(err)) });
   const rows = events.data?.pages.flat() ?? [];
 
   return (
     <>
       <PageHeader
-        title="Audit log"
-        description="Every change, in order. Each entry contains the fingerprint of the one before it, so editing or deleting history breaks the chain."
+        title="History"
+        description="Every change, in order. Each entry is linked to the one before it, so any edit or deletion shows up."
         actions={
           <Button variant="secondary" onClick={() => verify.mutate()} loading={verify.isPending} icon={<ShieldCheck className="size-4" />}>
             Verify chain
@@ -50,7 +52,6 @@ export default function AuditPage() {
           )}
         </div>
       )}
-      {verify.error && <Notice tone="fail">{errorMessage(verify.error)}</Notice>}
 
       {events.isLoading ? (
         <Spinner />
@@ -67,7 +68,7 @@ export default function AuditPage() {
                       Open batch
                     </Link>
                   )}
-                  {e.actorId === null && <span className="ml-2 text-[12.5px] text-ink-faint">by Veyra after checking the chain</span>}
+                  {e.actorId === null && <span className="ml-2 text-[12.5px] text-ink-faint">by Veyra after checking the blockchain</span>}
                   <span className="mt-0.5 block font-mono text-[11.5px] text-ink-faint" title={e.hash}>
                     {shortHash(e.hash, 10, 6)}
                   </span>

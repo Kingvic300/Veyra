@@ -40,12 +40,12 @@ export default function BatchesPage() {
   return (
     <>
       <PageHeader
-        title="Payroll batches"
-        description="Each batch pays a group of contractors once. It moves from draft to approved to paid, and every step lands in the audit log."
+        title="Payouts"
+        description="A payout pays several people at once. It goes from draft, to approved, to paid. Every step is saved in your history."
         actions={
           org.can('batches:write') && (
             <Link href={`${base}/new`}>
-              <Button icon={<Plus className="size-4" />}>New payroll batch</Button>
+              <Button icon={<Plus className="size-4" />}>New payout</Button>
             </Link>
           )
         }
@@ -94,7 +94,7 @@ export default function BatchesPage() {
           })}
         </div>
         <label className="relative">
-          <span className="sr-only">Search batches</span>
+          <span className="sr-only">Search payouts</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" aria-hidden />
           <input
             value={query}
@@ -109,12 +109,12 @@ export default function BatchesPage() {
         <SkeletonRows rows={6} />
       ) : (batches.data ?? []).length === 0 ? (
         <Empty
-          title="No payroll batches yet"
-          body="Create a batch, choose who gets paid and how much, then send it for approval. Nothing moves until enough people approve."
+          title="No payouts yet"
+          body="Create a payout, choose who gets paid and how much, then send it for approval. No money moves until enough people approve."
           action={
             org.can('batches:write') ? (
               <Link href={`${base}/new`}>
-                <Button size="sm">New payroll batch</Button>
+                <Button size="sm">New payout</Button>
               </Link>
             ) : undefined
           }
@@ -125,7 +125,7 @@ export default function BatchesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[12.5px] text-ink-faint">
-                  <th className="px-5 py-2.5 font-medium">Batch</th>
+                  <th className="px-5 py-2.5 font-medium">Payout</th>
                   <th className="px-5 py-2.5 font-medium">Status</th>
                   <th className="px-5 py-2.5 font-medium">Prepared by</th>
                   <th className="px-5 py-2.5 text-right font-medium">Payments</th>
@@ -168,7 +168,7 @@ export default function BatchesPage() {
                 {rows.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-5 py-8 text-center text-ink-soft">
-                      No batches match. Clear the search or choose another status.
+                      No payouts match. Clear the search or choose another status.
                     </td>
                   </tr>
                 )}

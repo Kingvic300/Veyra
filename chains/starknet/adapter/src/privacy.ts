@@ -31,6 +31,26 @@ export const VAULT_PRIVACY: PrivacyCapabilities = {
   ],
 };
 
+export const WALLET_PRIVACY: PrivacyCapabilities = {
+  label: 'Transparent on-chain, paid from your wallet',
+  shieldedTransfers: false,
+  maturity: 'production',
+  visibility: {
+    recipientAddresses: 'public',
+    amounts: 'public',
+    contractorIdentity: 'encrypted-offchain',
+    batchTotal: 'public',
+    timing: 'public',
+    approvals: 'encrypted-offchain',
+  },
+  disclosures: [
+    'Recipient addresses, individual amounts, batch totals and timing are public on Starknet.',
+    'Payments come straight from your account, so anyone can see that your account paid them.',
+    'Approvals are enforced by the Veyra API, not by a contract, in this mode. Whoever holds the paying wallet can still send funds outside Veyra.',
+    ...OFFCHAIN_ONLY_DISCLOSURES,
+  ],
+};
+
 export const STRK20_PRIVACY: PrivacyCapabilities = {
   label: 'Private transfers via STRK20 (experimental)',
   shieldedTransfers: true,

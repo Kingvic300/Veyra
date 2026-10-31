@@ -27,7 +27,7 @@ export default function ReceiptPage() {
     <>
       <div className="no-print mb-6 flex justify-between">
         <Link href={`/o/${org.orgId}/batches/${batchId}`} className="text-sm text-ink-soft hover:text-ink">
-          Back to batch
+          Back to payout
         </Link>
         <Button variant="secondary" size="sm" icon={<Printer className="size-4" />} onClick={() => window.print()}>
           Print or save as PDF
@@ -48,7 +48,7 @@ export default function ReceiptPage() {
             <dd className="font-medium">{STATUS_LABEL[b.status]}</dd>
             <dt className="text-ink-soft">Network</dt>
             <dd>{networkLabel(b.chain, b.network)}</dd>
-            <dt className="text-ink-soft">Settled</dt>
+            <dt className="text-ink-soft">Paid on</dt>
             <dd>{date(r.execution?.finalisedAt, true) || 'Not yet'}</dd>
             <dt className="text-ink-soft">Issued</dt>
             <dd>{date(r.generatedAt, true)}</dd>
@@ -101,12 +101,12 @@ export default function ReceiptPage() {
               {r.execution?.verification
                 ? r.execution.verification.verified
                   ? r.execution.verification.method === 'onchain-events'
-                    ? 'Every payment matches the vault and token transfer events of the settlement transaction.'
+                    ? 'Every payment matches what the blockchain recorded for this transaction.'
                     : r.execution.verification.method === 'transaction-status'
-                      ? 'The payer transaction succeeded. Shielded amounts are not publicly verifiable.'
-                      : 'Settled on the simulated ledger. No real funds moved.'
+                      ? 'The payment went through. Amounts are hidden, so nobody outside your team can check them.'
+                      : 'Paid in practice mode. No real money moved.'
                   : `Mismatch: ${r.execution.verification.mismatches.join('; ')}`
-                : 'Not settled yet.'}
+                : 'Not paid yet.'}
             </p>
           </div>
         </section>
@@ -116,7 +116,7 @@ export default function ReceiptPage() {
           <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[12rem_1fr]">
             {tx && (
               <>
-                <dt className="text-ink-soft">Settlement transaction</dt>
+                <dt className="text-ink-soft">Payment transaction</dt>
                 <dd className="font-mono break-all">{txUrl ? <a href={txUrl} className="text-settle underline">{tx}</a> : tx}</dd>
               </>
             )}
@@ -132,17 +132,17 @@ export default function ReceiptPage() {
             </dd>
             {b.commitment && (
               <>
-                <dt className="text-ink-soft">Batch commitment</dt>
+                <dt className="text-ink-soft">Payout fingerprint</dt>
                 <dd className="font-mono break-all">{b.commitment}</dd>
               </>
             )}
             {b.chainItemsHash && (
               <>
-                <dt className="text-ink-soft">Vault items hash</dt>
+                <dt className="text-ink-soft">Vault fingerprint</dt>
                 <dd className="font-mono break-all">{b.chainItemsHash}</dd>
               </>
             )}
-            <dt className="text-ink-soft">Last audit entry</dt>
+            <dt className="text-ink-soft">Last history entry</dt>
             <dd className="font-mono break-all">{r.auditTrail.at(-1)?.hash}</dd>
           </dl>
           <p className="mt-6 text-ink-faint">{r.privacy.label}. {r.privacy.disclosures[0]}</p>

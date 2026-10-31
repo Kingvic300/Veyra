@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { attentionReason, needsAttention } from '@/lib/attention';
 import { relative } from '@/lib/format';
-import { keys, useOrg } from '@/lib/hooks';
+import { keys, useOrg, useMe } from '@/lib/hooks';
 import { ACTION_COPY } from '@/lib/audit-copy';
 
 /**
@@ -18,6 +18,7 @@ import { ACTION_COPY } from '@/lib/audit-copy';
  */
 export function NotificationBell() {
   const org = useOrg();
+  const me = useMe();
   const [open, setOpen] = useState(false);
   const [lastSeen, setLastSeen] = useState(0);
   const panel = useRef<HTMLDivElement>(null);
@@ -45,7 +46,8 @@ export function NotificationBell() {
 
   const waiting = needsAttention(batches.data ?? [], org.can);
   const latestSeq = activity.data?.[0]?.seq ?? 0;
-  const unreadActivity = (activity.data ?? []).filter((e) => e.seq > lastSeen).length;
+  // Your own actions are never news to you.
+  const unreadActivity = (activity.data ?? []).filter((e) => e.seq > lastSeen && e.actorId !== me.data?.id).length;
   const count = waiting.length + unreadActivity;
 
   function toggle() {
@@ -108,7 +110,7 @@ export function NotificationBell() {
               ))}
             </ul>
             <Link href={`/o/${org.orgId}/audit`} onClick={() => setOpen(false)} className="block border-t border-line px-4 py-2.5 text-[13px] font-medium text-settle hover:bg-wash">
-              Open the audit log
+              Open history
             </Link>
           </section>
         </div>

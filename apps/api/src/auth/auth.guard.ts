@@ -1,7 +1,9 @@
-import { Injectable, type CanActivate, type ExecutionContext } from '@nestjs/common';
+import { Inject, Injectable, type CanActivate, type ExecutionContext } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { forbidden, unauthorised } from '../common/errors.js';
+import { DB, schema, type Db } from '../db/database.js';
 import { IS_PUBLIC, type AuthedRequest } from './decorators.js';
 
 export const SESSION_COOKIE = 'veyra_session';
@@ -28,6 +30,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly jwt: JwtService,
+    @Inject(DB) private readonly db: Db,
   ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -43,12 +46,20 @@ export class AuthGuard implements CanActivate {
     if (!bearer && !SAFE_METHODS.has(req.method) && req.headers[CSRF_HEADER] !== '1') {
       throw forbidden('Missing CSRF header');
     }
+    let payload: { sub: string; email: string; sv?: number };
     try {
-      const payload = await this.jwt.verifyAsync<{ sub: string; email: string }>(token);
-      req.user = { id: payload.sub, email: payload.email };
-      return true;
+      payload = await this.jwt.verifyAsync<{ sub: string; email: string; sv?: number }>(token);
     } catch {
       throw unauthorised('Session expired or invalid');
     }
+    // Sessions issued before the latest password change are no longer valid.
+    const [user] = await this.db
+      .select({ sessionVersion: schema.users.sessionVersion })
+      .from(schema.users)
+      .where(eq(schema.users.id, payload.sub))
+      .limit(1);
+    if (!user || user.sessionVersion !== (payload.sv ?? 0)) throw unauthorised('Session expired or invalid');
+    req.user = { id: payload.sub, email: payload.email };
+    return true;
   }
 }

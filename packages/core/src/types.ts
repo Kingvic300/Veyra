@@ -58,6 +58,28 @@ export interface Member {
   createdAt: string;
 }
 
+/** A pending invitation for someone who does not have a Veyra account yet. */
+export interface Invitation {
+  id: string;
+  organisationId: string;
+  email: string;
+  role: Role;
+  walletAddress: string | null;
+  invitedBy: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export type InviteResult = { status: 'added'; member: Member } | { status: 'invited'; invitation: Invitation };
+
+/** What someone opening an invitation link sees before signing up. */
+export interface InvitationPreview {
+  email: string;
+  organisationName: string;
+  invitedByName: string;
+  role: Role;
+}
+
 export interface Contractor {
   id: string;
   organisationId: string;

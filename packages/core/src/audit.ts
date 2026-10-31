@@ -74,6 +74,8 @@ export const AuditActions = {
   MemberAdded: 'member.added',
   MemberUpdated: 'member.updated',
   MemberRemoved: 'member.removed',
+  InvitationSent: 'invitation.sent',
+  InvitationRevoked: 'invitation.revoked',
   ContractorCreated: 'contractor.created',
   ContractorUpdated: 'contractor.updated',
   ContractorArchived: 'contractor.archived',

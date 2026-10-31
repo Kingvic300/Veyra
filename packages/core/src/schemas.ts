@@ -19,7 +19,12 @@ const address = z.string().trim().min(1).max(128);
 export const registerSchema = z.object({
   email: z.email().max(254).transform((v) => v.toLowerCase()),
   name: z.string().trim().min(1).max(120),
-  password: z.string().min(12, 'Use at least 12 characters').max(256),
+  password: z.string().min(8, 'Use at least 8 characters').max(256),
+  /** Secret from an invitation email; joins the inviting organisation on sign-up. */
+  inviteToken: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{32,128}$/, 'Invalid invitation link')
+    .optional(),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
@@ -28,6 +33,25 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(256),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
+
+const newPassword = z.string().min(8, 'Use at least 8 characters').max(256);
+
+export const forgotPasswordSchema = z.object({
+  email: z.email().transform((v) => v.toLowerCase()),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().regex(/^[A-Za-z0-9_-]{32,128}$/, 'Invalid reset link'),
+  password: newPassword,
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(256),
+  newPassword,
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
 export const approvalPolicySchema = z.object({
   threshold: z.number().int().min(1).max(20),
@@ -67,6 +91,16 @@ export const addMemberSchema = z.object({
   walletAddress: address.nullable().optional(),
 });
 export type AddMemberInput = z.infer<typeof addMemberSchema>;
+
+export const acceptInvitationSchema = z.object({
+  token: z.string().regex(/^[A-Za-z0-9_-]{32,128}$/, 'Invalid invitation link'),
+});
+export type AcceptInvitationInput = z.infer<typeof acceptInvitationSchema>;
+
+export const updateProfileSchema = z.object({
+  name: z.string().trim().min(1, 'Enter your name').max(120),
+});
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 export const updateMemberSchema = z
   .object({

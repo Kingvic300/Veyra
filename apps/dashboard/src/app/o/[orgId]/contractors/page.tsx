@@ -1,14 +1,14 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import type { Contractor } from '@veyra/core';
 import { useToast } from '@/components/providers';
 import { Search } from 'lucide-react';
 import { countryName } from '@/components/charts';
 import { SkeletonRows } from '@/components/loading';
 import { Avatar } from '@/components/org-avatar';
-import { Button, Dialog, Empty, Field, Hash, Input, Notice, PageHeader, Panel, Table } from '@/components/ui';
+import { Button, Dialog, Empty, Field, Hash, Input, Notice, PageHeader, Panel, PrefixInput, Table } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { amount, date, explorerUrl } from '@/lib/format';
 import { keys, useOrg } from '@/lib/hooks';
@@ -18,6 +18,18 @@ export default function ContractorsPage() {
   const qc = useQueryClient();
   const toast = useToast();
   const [editing, setEditing] = useState<Contractor | 'new' | null>(null);
+  type Pending = { name: string; email: string | null; country: string | null };
+  // People carried over from practice mode whose wallets were practice-only (set by "Go live").
+  const walletKey = `veyra:needs-wallet:${org.orgId}`;
+  const [needWallets, setNeedWallets] = useState<Pending[]>([]);
+  const [prefill, setPrefill] = useState<Pending | null>(null);
+  useEffect(() => {
+    try {
+      setNeedWallets(JSON.parse(sessionStorage.getItem(walletKey) ?? '[]') as Pending[]);
+    } catch {
+      setNeedWallets([]);
+    }
+  }, [walletKey]);
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState('');
   const contractors = useQuery({
@@ -44,16 +56,28 @@ export default function ContractorsPage() {
       return editing === 'new' ? api.contractors.create(org.orgId, input) : api.contractors.update(org.orgId, (editing as Contractor).id, input);
     },
     onSuccess: async () => {
-      toast('settle', editing === 'new' ? 'Contractor added' : 'Contractor updated');
+      toast('settle', editing === 'new' ? 'Person added' : 'Changes saved');
+      if (prefill) {
+        const rest = needWallets.filter((p) => p.name !== prefill.name || p.email !== prefill.email);
+        setNeedWallets(rest);
+        try {
+          if (rest.length) sessionStorage.setItem(walletKey, JSON.stringify(rest));
+          else sessionStorage.removeItem(walletKey);
+        } catch {
+          /* ignore */
+        }
+        setPrefill(null);
+      }
       setEditing(null);
       await qc.invalidateQueries({ queryKey: keys.contractors(org.orgId) });
     },
+    onError: (err) => toast('fail', errorMessage(err)),
   });
 
   const archive = useMutation({
     mutationFn: (c: Contractor) => (c.active ? api.contractors.archive(org.orgId, c.id) : api.contractors.update(org.orgId, c.id, { active: true })),
     onSuccess: async (c) => {
-      toast('neutral', c.active ? 'Contractor restored' : 'Contractor archived');
+      toast('neutral', c.active ? 'Person restored' : 'Person archived');
       await qc.invalidateQueries({ queryKey: keys.contractors(org.orgId) });
     },
     onError: (err) => toast('fail', errorMessage(err)),
@@ -69,13 +93,37 @@ export default function ContractorsPage() {
   return (
     <>
       <PageHeader
-        title="Contractors"
-        description="The people you pay and the wallets their money goes to. Names and emails are encrypted in Veyra's database."
-        actions={canWrite && <Button onClick={() => setEditing('new')}>Add contractor</Button>}
+        title="People you pay"
+        description="Everyone you pay, and the wallet their money goes to. Names and emails are encrypted in Veyra's database."
+        actions={canWrite && <Button onClick={() => setEditing('new')}>Add person</Button>}
       />
+      {canWrite && needWallets.length > 0 && (
+        <Panel title="Add their real wallets" className="mb-6" padded={false}>
+          <p className="border-b border-line px-5 py-3 text-sm text-ink-soft">
+            These people came from practice mode with practice wallets. Add the real wallet address each of them should be paid at.
+          </p>
+          <ul className="divide-y divide-line">
+            {needWallets.map((p) => (
+              <li key={`${p.name}:${p.email ?? ''}`} className="flex items-center gap-4 px-5 py-3 text-sm">
+                <span className="min-w-0 flex-1 truncate font-medium">{p.name}</span>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setPrefill(p);
+                    setEditing('new');
+                  }}
+                >
+                  Add wallet
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+
       <section className="mb-6 grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-3">
         <div className="bg-surface p-5">
-          <p className="text-sm text-ink-soft">Active contractors</p>
+          <p className="text-sm text-ink-soft">People you pay</p>
           <p className="mt-1.5 text-[22px] font-semibold">{contractors.data ? contractors.data.filter((c) => c.active).length : '—'}</p>
           <p className="mt-0.5 text-[13px] text-ink-faint">in {countries.size} {countries.size === 1 ? 'country' : 'countries'}</p>
         </div>
@@ -84,10 +132,10 @@ export default function ContractorsPage() {
           <p className="mt-1.5 text-[22px] font-semibold">
             {stats.data?.contractors ? amount(stats.data.contractors.reduce((a, c) => a + BigInt(c.total), 0n), o.asset) : '—'}
           </p>
-          <p className="mt-0.5 text-[13px] text-ink-faint">{stats.data?.completedPayments ?? 0} payments settled</p>
+          <p className="mt-0.5 text-[13px] text-ink-faint">{stats.data?.completedPayments ?? 0} payments made</p>
         </div>
         <div className="bg-surface p-5">
-          <p className="text-sm text-ink-soft">Top earner</p>
+          <p className="text-sm text-ink-soft">Paid the most</p>
           <p className="mt-1.5 truncate text-[22px] font-semibold">{stats.data?.contractors?.[0]?.name ?? '—'}</p>
           <p className="mt-0.5 text-[13px] text-ink-faint">
             {stats.data?.contractors?.[0] ? amount(stats.data.contractors[0].total, o.asset) : 'No payments yet'}
@@ -97,7 +145,7 @@ export default function ContractorsPage() {
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <label className="relative">
-          <span className="sr-only">Search contractors</span>
+          <span className="sr-only">Search people</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" aria-hidden />
           <input
             value={search}
@@ -115,18 +163,18 @@ export default function ContractorsPage() {
         <SkeletonRows rows={5} />
       ) : contractors.data?.length === 0 ? (
         <Empty
-          title="No contractors yet"
-          body="Add each person with the wallet address they want to be paid at. You will pick from this list when you build a batch."
-          action={canWrite ? <Button size="sm" onClick={() => setEditing('new')}>Add contractor</Button> : undefined}
+          title="No one here yet"
+          body="Add each person with the wallet address they want to be paid at. You pick from this list when you create a payout."
+          action={canWrite ? <Button size="sm" onClick={() => setEditing('new')}>Add person</Button> : undefined}
         />
       ) : (
         <Panel padded={false}>
           <Table>
             <thead>
               <tr>
-                <th>Contractor</th>
+                <th>Person</th>
                 <th>Country</th>
-                <th>Payout wallet</th>
+                <th>Wallet</th>
                 <th className="text-right">Paid (12 months)</th>
                 <th>Last paid</th>
                 {canWrite && <th className="sr-only">Actions</th>}
@@ -175,34 +223,44 @@ export default function ContractorsPage() {
         </Panel>
       )}
 
-      <Dialog open={editing !== null} onClose={() => setEditing(null)} title={current ? `Edit ${current.name}` : 'Add contractor'}>
+      <Dialog
+        open={editing !== null}
+        onClose={() => {
+          setEditing(null);
+          setPrefill(null);
+        }}
+        title={current ? `Edit ${current.name}` : prefill ? `Add ${prefill.name}'s wallet` : 'Add person'}
+      >
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <Field label="Full name" htmlFor="name">
-            <Input id="name" name="name" required defaultValue={current?.name} />
+            <Input id="name" name="name" required defaultValue={current?.name ?? prefill?.name} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-[1fr_6rem]">
             <Field label="Email (optional)" htmlFor="email">
-              <Input id="email" name="email" type="email" defaultValue={current?.email ?? ''} />
+              <Input id="email" name="email" type="email" defaultValue={current?.email ?? prefill?.email ?? ''} />
             </Field>
             <Field label="Country" htmlFor="country" hint="2 letters">
-              <Input id="country" name="country" maxLength={2} defaultValue={current?.country ?? ''} placeholder="NG" />
+              <Input id="country" name="country" maxLength={2} defaultValue={current?.country ?? prefill?.country ?? ''} placeholder="NG" />
             </Field>
           </div>
           <Field
-            label="Payout wallet"
+            label="Wallet address"
             htmlFor="payoutAddress"
-            hint={o.chain === 'simulated' ? 'Use any name starting with sim:, for example sim:ngozi.' : 'The Starknet account that receives the payment. Double-check it with the contractor.'}
+            hint={o.chain === 'simulated' ? 'Practice mode: any name works, for example ngozi.' : 'The Starknet wallet address that receives the money. Double-check it with them.'}
           >
-            <Input id="payoutAddress" name="payoutAddress" mono required defaultValue={current?.payoutAddress} placeholder={o.chain === 'simulated' ? 'sim:name' : '0x…'} />
+            {o.chain === 'simulated' ? (
+              <PrefixInput id="payoutAddress" name="payoutAddress" prefix="sim:" lowercase required defaultValue={current?.payoutAddress} placeholder="name" />
+            ) : (
+              <Input id="payoutAddress" name="payoutAddress" mono required defaultValue={current?.payoutAddress} placeholder="0x…" />
+            )}
           </Field>
-          {current && <Notice>Changing the wallet affects batches submitted from now on. Batches already submitted keep the old address.</Notice>}
-          {save.error && <Notice tone="fail">{errorMessage(save.error)}</Notice>}
+          {current && <Notice>The new wallet is used for payouts sent for approval from now on. Payouts already sent keep the old address.</Notice>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setEditing(null)}>
               Close
             </Button>
             <Button type="submit" loading={save.isPending}>
-              {current ? 'Save changes' : 'Add contractor'}
+              {current ? 'Save changes' : 'Add person'}
             </Button>
           </div>
         </form>

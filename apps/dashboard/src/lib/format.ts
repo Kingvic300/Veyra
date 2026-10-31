@@ -38,7 +38,7 @@ export const STATUS_LABEL: Record<BatchStatus, string> = {
   DRAFT: 'Draft',
   PENDING_APPROVAL: 'Awaiting approval',
   APPROVED: 'Ready to pay',
-  EXECUTING: 'Settling',
+  EXECUTING: 'Paying',
   COMPLETED: 'Paid',
   FAILED: 'Payment failed',
   CANCELLED: 'Cancelled',
@@ -68,6 +68,6 @@ export function explorerUrl(chain: string, network: string, kind: 'tx' | 'contra
 }
 
 export function networkLabel(chain: string, network: string) {
-  if (chain === 'simulated') return 'Simulated ledger';
+  if (chain === 'simulated') return 'Practice (no blockchain)';
   return `Starknet ${network.charAt(0).toUpperCase()}${network.slice(1)}`;
 }

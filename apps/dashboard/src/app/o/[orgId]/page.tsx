@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowDownRight, ArrowUpRight, Check, Plus, UserPlus } from 'lucide-react';
 import Link from 'next/link';
+import type { AuditEvent } from '@veyra/core';
 import { StatusPill } from '@/components/batch-bits';
 import { CountryBars, MonthlyColumns } from '@/components/charts';
 import { SkeletonRows } from '@/components/loading';
@@ -39,14 +40,52 @@ export default function OverviewPage() {
   // Approvers beyond the batch creator, unless creators may approve their own batches.
   const approvers = members.data?.filter((m) => m.role !== 'VIEWER').length ?? 0;
   const neededApprovers = o.approvalPolicy.threshold + (o.approvalPolicy.allowCreatorApproval ? 0 : 1);
+  const missingApprovers = Math.max(0, neededApprovers - approvers);
   const setup = [
-    { done: !!o.treasuryAddress, label: 'Connect the treasury', href: `${base}/settings` },
-    { done: (s?.activeContractors ?? 0) > 0, label: 'Add the people you pay', href: `${base}/contractors` },
-    { done: approvers >= neededApprovers, label: `Have ${neededApprovers} people who can approve`, href: `${base}/team` },
-    { done: (batches.data?.length ?? 0) > 0, label: 'Draft your first payroll batch', href: `${base}/batches/new` },
-    { done: (s?.completedBatches ?? 0) > 0, label: 'Pay and get a verified receipt', href: `${base}/batches` },
+    {
+      done: !!o.treasuryAddress,
+      label: 'Choose where the money comes from',
+      body: 'Add the wallet or vault that pays everyone.',
+      cta: 'Open settings',
+      href: `${base}/settings`,
+    },
+    {
+      done: (s?.activeContractors ?? 0) > 0,
+      label: 'Add the people you pay',
+      body: 'Their name and the wallet their money should go to.',
+      cta: 'Add a person',
+      href: `${base}/contractors`,
+    },
+    ...(neededApprovers > 1
+      ? [
+          {
+            done: missingApprovers === 0,
+            label: missingApprovers > 0 ? `Invite ${missingApprovers} ${missingApprovers === 1 ? 'approver' : 'approvers'}` : 'Approvers invited',
+            body: `Each payout needs ${o.approvalPolicy.threshold} ${o.approvalPolicy.threshold === 1 ? 'approval' : 'approvals'}${o.approvalPolicy.allowCreatorApproval ? '' : ' from someone other than the person who creates it'}.`,
+            cta: 'Invite someone',
+            href: `${base}/team`,
+          },
+        ]
+      : []),
+    {
+      done: (batches.data?.length ?? 0) > 0,
+      label: 'Create your first payout',
+      body: 'Pick who gets paid and how much, then send it for approval.',
+      cta: 'New payout',
+      href: `${base}/batches/new`,
+    },
+    {
+      done: (s?.completedBatches ?? 0) > 0,
+      label: 'Approve and pay it',
+      body: 'Once approved, pay it and download the receipt.',
+      cta: 'Go to payouts',
+      href: `${base}/batches`,
+    },
   ];
   const setupDone = setup.filter((x) => x.done).length;
+  const nextStep = setup.findIndex((x) => !x.done);
+  const hasHistory = (s?.completedBatches ?? 0) > 0;
+  const showSetup = setupDone < setup.length && org.can('org:manage');
 
   return (
     <>
@@ -62,53 +101,140 @@ export default function OverviewPage() {
           {org.can('contractors:write') && (
             <Link href={`${base}/contractors`}>
               <Button variant="secondary" icon={<UserPlus className="size-4" />}>
-                Add contractor
+                Add person
               </Button>
             </Link>
           )}
           {org.can('batches:write') && (
             <Link href={`${base}/batches/new`}>
-              <Button icon={<Plus className="size-4" />}>New payroll batch</Button>
+              <Button icon={<Plus className="size-4" />}>New payout</Button>
             </Link>
           )}
         </div>
       </div>
 
-      {/* Headline figures */}
-      <section className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2 xl:grid-cols-4" aria-label="Key figures">
-        <Figure label="Paid this month" loading={!s}>
-          {s && amount(s.paidThisMonth, s.asset)}
-          {change !== null && (
-            <span className={clsx('ml-2 inline-flex items-center gap-0.5 text-[13px] font-medium', change >= 0 ? 'text-settle' : 'text-fail')}>
-              {change >= 0 ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
-              {Math.abs(change)}% vs last month
-            </span>
-          )}
-        </Figure>
-        <Figure label="Paid since you started" loading={!s} note={s ? `${s.completedPayments} payment${s.completedPayments === 1 ? '' : 's'} in ${s.completedBatches} batch${s.completedBatches === 1 ? '' : 'es'}` : undefined}>
-          {s && amount(s.paidAllTime, s.asset)}
-        </Figure>
-        <Figure label="Waiting for approval" loading={!s} note={s?.awaitingApproval.count ? amount(s.awaitingApproval.total, s.asset) : 'Nothing pending'}>
-          {s && `${s.awaitingApproval.count} batch${s.awaitingApproval.count === 1 ? '' : 'es'}`}
-        </Figure>
-        <Figure
-          label="Approval to settlement"
-          loading={!s}
-          note={s?.medianSettlementSeconds !== null && s ? `Settles in ~${Math.max(1, Math.round(s.medianSettlementSeconds!))}s once sent` : 'Median across batches'}
-        >
-          {s && (s.medianApprovalHours === null ? 'No data yet' : `${s.medianApprovalHours < 1 ? '<1' : s.medianApprovalHours.toFixed(1)} h to approve`)}
-        </Figure>
-      </section>
+      {o.chain === 'simulated' && org.can('org:manage') && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-pending/30 bg-pending-wash px-5 py-3.5">
+          <p className="text-sm">
+            <span className="font-medium">You are in practice mode.</span>{' '}
+            <span className="text-ink-soft">The money is fake. When you are ready to pay for real, go live and your team and people come with you.</span>
+          </p>
+          <Link href={`/onboarding?from=${o.id}`}>
+            <Button size="sm" variant="secondary">
+              Go live
+            </Button>
+          </Link>
+        </div>
+      )}
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+      {showSetup && (
+        <section className="mb-6 rounded-panel border border-line bg-surface" aria-label="Get started">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+            <div>
+              <h2 className="text-[17px] font-semibold">Get started</h2>
+              <p className="text-sm text-ink-soft">
+                {setupDone} of {setup.length} steps done. Follow them in order to make your first payout.
+              </p>
+            </div>
+            <div className="h-1.5 w-40 overflow-hidden rounded-full bg-wash" aria-hidden>
+              <div className="h-full rounded-full bg-settle" style={{ width: `${(setupDone / setup.length) * 100}%` }} />
+            </div>
+          </div>
+          <ol>
+            {setup.map((step, i) => {
+              const current = i === nextStep;
+              return (
+                <li
+                  key={step.label}
+                  className={clsx('flex items-start gap-4 border-t border-line px-5 py-4 first:border-t-0', current && 'bg-settle-wash/40')}
+                >
+                  <span
+                    className={clsx(
+                      'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold',
+                      step.done ? 'bg-settle text-white' : current ? 'bg-ink text-white' : 'border border-line-strong text-ink-soft',
+                    )}
+                    aria-hidden
+                  >
+                    {step.done ? <Check className="size-3.5" strokeWidth={3} /> : i + 1}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className={clsx('block font-medium', step.done && 'text-ink-soft line-through decoration-ink-faint/50')}>
+                      {step.label}
+                      {step.done && <span className="sr-only"> (done)</span>}
+                    </span>
+                    {!step.done && <span className="block text-sm text-ink-soft">{step.body}</span>}
+                  </span>
+                  {current && (
+                    <Link href={step.href} className="shrink-0">
+                      <Button size="sm">{step.cta}</Button>
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      )}
+
+      {/* Headline figures */}
+      {hasHistory && (
+        <section
+          className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2 xl:grid-cols-4"
+          aria-label="Key figures"
+        >
+          <Figure label="Paid this month" loading={!s}>
+            {s && amount(s.paidThisMonth, s.asset)}
+            {change !== null && (
+              <span className={clsx('ml-2 inline-flex items-center gap-0.5 text-[13px] font-medium', change >= 0 ? 'text-settle' : 'text-fail')}>
+                {change >= 0 ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
+                {Math.abs(change)}% vs last month
+              </span>
+            )}
+          </Figure>
+          <Figure
+            label="Paid since you started"
+            loading={!s}
+            note={
+              s
+                ? `${s.completedPayments} payment${s.completedPayments === 1 ? '' : 's'} in ${s.completedBatches} payout${s.completedBatches === 1 ? '' : 's'}`
+                : undefined
+            }
+          >
+            {s && amount(s.paidAllTime, s.asset)}
+          </Figure>
+          <Figure
+            label="Waiting for approval"
+            loading={!s}
+            note={s?.awaitingApproval.count ? amount(s.awaitingApproval.total, s.asset) : 'Nothing pending'}
+          >
+            {s && `${s.awaitingApproval.count} payout${s.awaitingApproval.count === 1 ? '' : 's'}`}
+          </Figure>
+          <Figure
+            label="Approval to payment"
+            loading={!s}
+            note={
+              s?.medianSettlementSeconds !== null && s
+                ? `Paid ~${Math.max(1, Math.round(s.medianSettlementSeconds!))}s after sending`
+                : 'Typical time across payouts'
+            }
+          >
+            {s &&
+              (s.medianApprovalHours === null
+                ? 'No data yet'
+                : `${s.medianApprovalHours < 1 ? '<1' : s.medianApprovalHours.toFixed(1)} h to approve`)}
+          </Figure>
+        </section>
+      )}
+
+      <div className={clsx('grid gap-6', hasHistory && 'mt-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]', !hasHistory && 'xl:grid-cols-2')}>
         {/* Treasury ledger */}
-        <section className="flex flex-col rounded-panel border border-line bg-surface" aria-label="Treasury">
+        <section className="flex flex-col rounded-panel border border-line bg-surface" aria-label="Funds">
           <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-            <h2 className="text-[15px] font-semibold">Treasury</h2>
-            <span className="text-[12.5px] text-ink-faint">{t?.privacy.label}</span>
+            <h2 className="text-[15px] font-semibold">Funds</h2>
+            <span className="text-[12.5px] text-ink-faint">{o.chain === 'simulated' ? 'Practice money' : `${o.asset.symbol} on Starknet`}</span>
           </div>
           <div className="flex-1 p-5">
-            <p className="text-sm text-ink-soft">Balance</p>
+            <p className="text-sm text-ink-soft">Available to pay</p>
             {t ? (
               <p className="mt-1 text-[34px] font-semibold leading-none tracking-[-0.02em]">
                 {t.balance ? amount(t.balance, o.asset, { symbol: false }) : 'Unavailable'}
@@ -121,19 +247,22 @@ export default function OverviewPage() {
             {t?.balance && (
               <>
                 <div className="mt-6 flex h-2.5 overflow-hidden rounded-full bg-wash" aria-hidden>
-                  <div className="h-full bg-pending" style={{ width: `${Math.min(100, Number((BigInt(t.committed) * 1000n) / (BigInt(t.balance) || 1n)) / 10)}%` }} />
+                  <div
+                    className="h-full bg-pending"
+                    style={{ width: `${Math.min(100, Number((BigInt(t.committed) * 1000n) / (BigInt(t.balance) || 1n)) / 10)}%` }}
+                  />
                   <div className="ml-0.5 h-full flex-1 bg-settle" />
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <dt className="flex items-center gap-1.5 text-ink-soft">
-                      <span className="size-2 rounded-sm bg-pending" aria-hidden /> Promised to approved batches
+                      <span className="size-2 rounded-sm bg-pending" aria-hidden /> Set aside for approved payouts
                     </dt>
                     <dd className="mt-0.5 font-semibold">{amount(t.committed, o.asset)}</dd>
                   </div>
                   <div>
                     <dt className="flex items-center gap-1.5 text-ink-soft">
-                      <span className="size-2 rounded-sm bg-settle" aria-hidden /> Free to pay out
+                      <span className="size-2 rounded-sm bg-settle" aria-hidden /> Free to use
                     </dt>
                     <dd className="mt-0.5 font-semibold text-settle-strong">{t.available ? amount(t.available, o.asset) : '—'}</dd>
                   </div>
@@ -148,52 +277,25 @@ export default function OverviewPage() {
           </div>
         </section>
 
-        <Panel title="Payroll paid per month" action={<span className="text-[12.5px] text-ink-faint">Last 6 months, {o.asset.symbol}</span>}>
-          {s ? <MonthlyColumns data={s.monthly} asset={s.asset} /> : <span className="skeleton block h-44 rounded-md" />}
-        </Panel>
+        {hasHistory ? (
+          <Panel title="Paid per month" action={<span className="text-[12.5px] text-ink-faint">Last 6 months, {o.asset.symbol}</span>}>
+            {s ? <MonthlyColumns data={s.monthly} asset={s.asset} /> : <span className="skeleton block h-44 rounded-md" />}
+          </Panel>
+        ) : (
+          <ActivityPanel base={base} loading={activity.isLoading} events={activity.data ?? []} />
+        )}
       </div>
 
-      {setupDone < setup.length && org.can('org:manage') && (
-        <section className="mt-6 rounded-panel border border-line bg-surface p-5" aria-label="Setup checklist">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-[15px] font-semibold">Get to your first verified payroll</h2>
-              <p className="text-sm text-ink-soft">
-                {setupDone} of {setup.length} done
-              </p>
-            </div>
-            <div className="h-1.5 w-48 overflow-hidden rounded-full bg-wash">
-              <div className="h-full rounded-full bg-settle" style={{ width: `${(setupDone / setup.length) * 100}%` }} />
-            </div>
-          </div>
-          <ol className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-            {setup.map((step, i) => (
-              <li key={step.label}>
-                <Link
-                  href={step.href}
-                  className={clsx(
-                    'flex h-full items-start gap-2.5 rounded-control border px-3 py-2.5 text-sm',
-                    step.done ? 'border-settle/20 bg-settle-wash/60 text-settle-strong' : 'border-line hover:border-line-strong',
-                  )}
-                >
-                  <span
-                    className={clsx(
-                      'mt-px flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold',
-                      step.done ? 'bg-settle text-white' : 'border border-line-strong text-ink-soft',
-                    )}
-                  >
-                    {step.done ? <Check className="size-3" strokeWidth={3} /> : i + 1}
-                  </span>
-                  {step.label}
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
-        <Panel title="Needs you" padded={false} action={attention.length > 0 && <span className="rounded-full bg-pending-wash px-2 text-[12px] font-semibold text-pending">{attention.length}</span>}>
+      <div className={clsx('mt-6 grid gap-6', hasHistory ? 'xl:grid-cols-3' : 'xl:grid-cols-1', !hasHistory && attention.length === 0 && 'hidden')}>
+        <Panel
+          title="Needs you"
+          padded={false}
+          action={
+            attention.length > 0 && (
+              <span className="rounded-full bg-pending-wash px-2 text-[12px] font-semibold text-pending">{attention.length}</span>
+            )
+          }
+        >
           {batches.isLoading ? (
             <div className="p-4">
               <SkeletonRows rows={3} />
@@ -225,84 +327,110 @@ export default function OverviewPage() {
           )}
         </Panel>
 
-        <Panel title="Where the money goes" action={<span className="text-[12.5px] text-ink-faint">Last 12 months</span>}>
-          {!s ? (
-            <span className="skeleton block h-40 rounded-md" />
-          ) : s.byCountry === null ? (
-            <p className="text-sm text-ink-soft">Your role sees totals only. Country breakdowns are limited to people who can see contractor records.</p>
-          ) : s.byCountry.length === 0 ? (
-            <p className="text-sm text-ink-soft">Once a batch is paid you will see payouts by country here.</p>
-          ) : (
-            <CountryBars rows={s.byCountry} asset={s.asset} />
-          )}
-        </Panel>
+        {hasHistory && (
+          <Panel title="Where the money goes" action={<span className="text-[12.5px] text-ink-faint">Last 12 months</span>}>
+            {!s ? (
+              <span className="skeleton block h-40 rounded-md" />
+            ) : s.byCountry === null ? (
+              <p className="text-sm text-ink-soft">
+                Your role sees totals only. The breakdown by country is visible to owners, admins and approvers.
+              </p>
+            ) : s.byCountry.length === 0 ? (
+              <p className="text-sm text-ink-soft">Once you pay someone, you will see where the money goes here.</p>
+            ) : (
+              <CountryBars rows={s.byCountry} asset={s.asset} />
+            )}
+          </Panel>
+        )}
 
-        <Panel title="Activity" padded={false} action={<Link href={`${base}/audit`} className="text-[13px] font-medium text-settle hover:underline">Audit log</Link>}>
-          {activity.isLoading ? (
-            <div className="p-4">
-              <SkeletonRows rows={4} />
-            </div>
-          ) : (
-            <ol className="relative px-5 py-4">
-              <span className="absolute bottom-6 left-[27px] top-6 w-px bg-line" aria-hidden />
-              {(activity.data ?? []).map((e) => (
-                <li key={e.id} className="relative flex gap-3 py-2">
-                  <span className={clsx('relative z-10 mt-1.5 size-[9px] shrink-0 rounded-full border-2 border-surface', e.actorId ? 'bg-ink-faint' : 'bg-settle')} aria-hidden />
-                  <span className="min-w-0">
-                    <span className="block text-sm">{ACTION_COPY[e.action] ?? e.action}</span>
-                    <span className="block text-[12px] text-ink-faint">
-                      {relative(e.createdAt)}
-                      {!e.actorId && ', confirmed on-chain'}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </Panel>
+        {hasHistory && <ActivityPanel base={base} loading={activity.isLoading} events={activity.data ?? []} />}
       </div>
 
-      <Panel title="Recently paid" padded={false} className="mt-6">
-        {recent.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-ink-soft">Paid batches and their receipts will be listed here.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[12.5px] text-ink-faint">
-                  <th className="px-5 py-2.5 font-medium">Batch</th>
-                  <th className="px-5 py-2.5 font-medium">Paid on</th>
-                  <th className="px-5 py-2.5 text-right font-medium">Payments</th>
-                  <th className="px-5 py-2.5 text-right font-medium">Total</th>
-                  <th className="px-5 py-2.5 font-medium">
-                    <span className="sr-only">Receipt</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {recent.map((b) => (
-                  <tr key={b.id} className="border-t border-line hover:bg-wash">
-                    <td className="px-5 py-3">
-                      <Link href={`${base}/batches/${b.id}`} className="font-medium hover:text-settle">
-                        {b.title}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3 text-ink-soft">{date(b.completedAt)}</td>
-                    <td className="px-5 py-3 text-right">{b.itemCount}</td>
-                    <td className="px-5 py-3 text-right font-medium">{amount(b.total, b.asset)}</td>
-                    <td className="px-5 py-3 text-right">
-                      <Link href={`${base}/batches/${b.id}/receipt`} className="text-[13px] font-medium text-settle hover:underline">
-                        Receipt
-                      </Link>
-                    </td>
+      {hasHistory && (
+        <Panel title="Recently paid" padded={false} className="mt-6">
+          {recent.length === 0 ? (
+            <p className="px-5 py-8 text-sm text-ink-soft">Paid payouts and their receipts will be listed here.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[12.5px] text-ink-faint">
+                    <th className="px-5 py-2.5 font-medium">Payout</th>
+                    <th className="px-5 py-2.5 font-medium">Paid on</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Payments</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Total</th>
+                    <th className="px-5 py-2.5 font-medium">
+                      <span className="sr-only">Receipt</span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Panel>
+                </thead>
+                <tbody>
+                  {recent.map((b) => (
+                    <tr key={b.id} className="border-t border-line hover:bg-wash">
+                      <td className="px-5 py-3">
+                        <Link href={`${base}/batches/${b.id}`} className="font-medium hover:text-settle">
+                          {b.title}
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3 text-ink-soft">{date(b.completedAt)}</td>
+                      <td className="px-5 py-3 text-right">{b.itemCount}</td>
+                      <td className="px-5 py-3 text-right font-medium">{amount(b.total, b.asset)}</td>
+                      <td className="px-5 py-3 text-right">
+                        <Link href={`${base}/batches/${b.id}/receipt`} className="text-[13px] font-medium text-settle hover:underline">
+                          Receipt
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+      )}
     </>
+  );
+}
+
+function ActivityPanel({ base, loading, events }: { base: string; loading: boolean; events: AuditEvent[] }) {
+  return (
+    <Panel
+      title="Activity"
+      padded={false}
+      action={
+        <Link href={`${base}/audit`} className="text-[13px] font-medium text-settle hover:underline">
+          History
+        </Link>
+      }
+    >
+      {loading ? (
+        <div className="p-4">
+          <SkeletonRows rows={4} />
+        </div>
+      ) : (
+        <ol className="relative px-5 py-4">
+          <span className="absolute bottom-6 left-[27px] top-6 w-px bg-line" aria-hidden />
+          {events.map((e) => (
+            <li key={e.id} className="relative flex gap-3 py-2">
+              <span
+                className={clsx(
+                  'relative z-10 mt-1.5 size-[9px] shrink-0 rounded-full border-2 border-surface',
+                  e.actorId ? 'bg-ink-faint' : 'bg-settle',
+                )}
+                aria-hidden
+              />
+              <span className="min-w-0">
+                <span className="block text-sm">{ACTION_COPY[e.action] ?? e.action}</span>
+                <span className="block text-[12px] text-ink-faint">
+                  {relative(e.createdAt)}
+                  {!e.actorId && ', confirmed on the blockchain'}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Panel>
   );
 }
 

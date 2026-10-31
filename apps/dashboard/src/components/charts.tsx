@@ -48,7 +48,7 @@ export function MonthlyColumns({ data, asset }: { data: MonthlySpend[]; asset: A
                 onFocus={() => setHover(i)}
                 onBlur={() => setHover(null)}
                 className="relative flex h-full items-end justify-center focus:outline-none"
-                aria-label={`${MONTH_LONG.format(monthDate(d.month))}: ${amount(d.total, asset)} across ${d.batches} batches`}
+                aria-label={`${MONTH_LONG.format(monthDate(d.month))}: ${amount(d.total, asset)} across ${d.batches} payouts`}
               >
                 {i === last && h > 0 && (
                   <span className="absolute text-[12px] font-medium text-ink" style={{ bottom: h + 6 }}>

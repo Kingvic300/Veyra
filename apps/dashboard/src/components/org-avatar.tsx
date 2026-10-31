@@ -21,7 +21,20 @@ export function initials(name: string) {
   return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? (parts.at(-1)?.[0] ?? '') : (parts[0]?.[1] ?? ''))).toUpperCase();
 }
 
-export function Avatar({ name, seed, size = 'md', round = false }: { name: string; seed?: string; size?: 'sm' | 'md' | 'lg'; round?: boolean }) {
+export function Avatar({
+  name,
+  seed,
+  size = 'md',
+  round = false,
+  solid = false,
+}: {
+  name: string;
+  seed?: string;
+  size?: 'sm' | 'md' | 'lg';
+  round?: boolean;
+  /** Filled tile with white initials, for the current organisation. */
+  solid?: boolean;
+}) {
   const [fg, bg] = TILES[hash(seed ?? name) % TILES.length]!;
   return (
     <span
@@ -33,7 +46,7 @@ export function Avatar({ name, seed, size = 'md', round = false }: { name: strin
         size === 'md' && 'size-9 text-[13px]',
         size === 'lg' && 'size-12 text-base',
       )}
-      style={{ color: fg, background: bg, boxShadow: `inset 0 0 0 1px ${fg}22` }}
+      style={solid ? { color: '#fff', background: fg } : { color: fg, background: bg, boxShadow: `inset 0 0 0 1px ${fg}22` }}
     >
       {initials(name)}
     </span>

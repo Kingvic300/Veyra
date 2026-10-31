@@ -33,18 +33,18 @@ export function railSteps(batch: BatchDetail, requiresProposal: boolean): Step[]
   const approvals = batch.approvalSummary;
 
   const steps: Step[] = [
-    { label: 'Drafted', detail: `${batch.itemCount} payments`, state: 'done' },
+    { label: 'Drafted', detail: `${batch.itemCount} ${batch.itemCount === 1 ? 'payment' : 'payments'}`, state: 'done' },
     {
-      label: 'Submitted',
-      detail: submitted ? 'Contents frozen' : 'Review and submit',
+      label: 'Sent for approval',
+      detail: submitted ? 'Locked for review' : 'Review and send',
       state: submitted ? 'done' : s === 'CANCELLED' ? 'skipped' : 'current',
     },
   ];
   if (requiresProposal) {
     const p = batch.proposal.status;
     steps.push({
-      label: 'Registered on-chain',
-      detail: p === 'CONFIRMED' ? 'Vault knows this batch' : p === 'PENDING' ? 'Waiting for the block' : p === 'FAILED' ? 'Registration failed' : 'Sign in your wallet',
+      label: 'Added to vault',
+      detail: p === 'CONFIRMED' ? 'The vault has this payout' : p === 'PENDING' ? 'Waiting for the network' : p === 'FAILED' ? 'Could not add to vault' : 'Confirm in your wallet',
       state: p === 'CONFIRMED' ? 'done' : p === 'FAILED' ? 'failed' : submitted && s !== 'CANCELLED' ? 'current' : 'waiting',
       tx: batch.proposal.txHash,
     });
@@ -57,14 +57,14 @@ export function railSteps(batch: BatchDetail, requiresProposal: boolean): Step[]
   });
   steps.push({
     label: 'Paid',
-    detail: s === 'COMPLETED' ? 'Settled' : s === 'EXECUTING' ? 'Settling' : s === 'FAILED' ? 'Reverted, safe to retry' : 'After approval',
+    detail: s === 'COMPLETED' ? 'Settled' : s === 'EXECUTING' ? 'Settling' : s === 'FAILED' ? 'Failed, no money moved. Safe to retry' : 'After approval',
     state: s === 'COMPLETED' ? 'done' : s === 'FAILED' ? 'failed' : s === 'EXECUTING' || s === 'APPROVED' ? 'current' : 'waiting',
     tx: lastExecution?.txHash,
   });
   const v = lastExecution?.verification;
   steps.push({
     label: 'Verified',
-    detail: v ? (v.verified ? (v.method === 'transaction-status' ? 'Payer transaction confirmed' : 'Matches chain events') : 'Mismatch found') : 'Checked after settlement',
+    detail: v ? (v.verified ? (v.method === 'transaction-status' ? 'Payment confirmed' : 'Matches the blockchain record') : 'Does not match') : 'Checked after payment',
     state: v?.verified && s === 'COMPLETED' ? 'done' : v && !v.verified ? 'failed' : 'waiting',
   });
   if (s === 'CANCELLED') for (const step of steps) if (step.state !== 'done') step.state = 'skipped';
@@ -74,7 +74,7 @@ export function railSteps(batch: BatchDetail, requiresProposal: boolean): Step[]
 export function SettlementRail({ batch, chain, network, requiresProposal }: { batch: BatchDetail; chain: string; network: string; requiresProposal: boolean }) {
   const steps = railSteps(batch, requiresProposal);
   return (
-    <ol className="grid gap-y-5 sm:grid-flow-col sm:auto-cols-fr" aria-label="Settlement progress">
+    <ol className="grid gap-y-5 sm:grid-flow-col sm:auto-cols-fr" aria-label="Payment progress">
       {steps.map((step, i) => {
         const next = steps[i + 1];
         return (
@@ -115,8 +115,8 @@ export function SettlementRail({ batch, chain, network, requiresProposal }: { ba
 }
 
 const VIS_LABEL: Record<Visibility, string> = {
-  public: 'Public on-chain',
-  hidden: 'Hidden by the privacy pool',
+  public: 'Public on the blockchain',
+  hidden: 'Hidden',
   'encrypted-offchain': 'Encrypted, visible to your team',
   'not-stored': 'Not published anywhere',
 };

@@ -4,6 +4,7 @@ import type { BatchPlan } from '@veyra/chain-adapter';
 import {
   StarknetStrk20Adapter,
   StarknetVaultAdapter,
+  StarknetWalletAdapter,
   computeItemsHash,
   createStarknetAdapter,
   decodeBatch,
@@ -213,5 +214,53 @@ describe('createStarknetAdapter', () => {
     expect(createStarknetAdapter('vault', { network: 'sepolia', rpc: rpc() })).toBeInstanceOf(StarknetVaultAdapter);
     expect(createStarknetAdapter('strk20-private', { network: 'sepolia', rpc: rpc() })).toBeInstanceOf(StarknetStrk20Adapter);
     expect(() => createStarknetAdapter('simulated', { network: 'sepolia', rpc: rpc() })).toThrow(/does not support/);
+  });
+});
+
+describe('StarknetWalletAdapter', () => {
+  const PAYER = '0x0777';
+  const walletPlan: BatchPlan = { ...plan, treasuryAddress: PAYER };
+  const transfers = (p: BatchPlan, from = PAYER, tamper = false): Ev[] =>
+    p.items.map((item, i) => {
+      const [lo, hi] = splitU256(tamper && i === 0 ? item.amount + 1n : item.amount);
+      return { from_address: TOKEN, keys: [selector('Transfer'), from, item.recipient], data: [lo, hi] };
+    });
+
+  it('pays from the account with API-enforced approvals and no proposal', () => {
+    const caps = new StarknetWalletAdapter({ network: 'sepolia', rpc: rpc() }).getCapabilities();
+    expect(caps).toMatchObject({ executionMode: 'wallet', onChainApprovals: false, requiresProposal: false, verifiableAmounts: true });
+    expect(createStarknetAdapter('wallet', { network: 'sepolia', rpc: rpc() })).toBeInstanceOf(StarknetWalletAdapter);
+  });
+
+  it('builds one ERC-20 transfer per payment and names the payer', () => {
+    const tx = new StarknetWalletAdapter({ network: 'sepolia', rpc: rpc() }).createPayment(walletPlan);
+    expect(tx.calls).toHaveLength(2);
+    expect(tx.calls[1]).toEqual({
+      contractAddress: num.toHex64(TOKEN),
+      entrypoint: 'transfer',
+      calldata: [num.toHex64('0x456'), ...splitU256(5n + (1n << 128n))],
+    });
+    expect(tx.extra).toEqual({ payer: num.toHex64(PAYER) });
+  });
+
+  it('refuses a batch without a paying account', () => {
+    expect(() => new StarknetWalletAdapter({ network: 'sepolia', rpc: rpc() }).createPayment({ ...plan, treasuryAddress: null })).toThrow(/Treasury/);
+  });
+
+  it('verifies transfers sent by the paying account', async () => {
+    const a = new StarknetWalletAdapter({ network: 'sepolia', rpc: rpc({ receipt: ok(transfers(walletPlan)), sender: PAYER }) });
+    const v = await a.verifyPayment(ref, walletPlan);
+    expect(v.mismatches).toEqual([]);
+    expect(v.verified).toBe(true);
+  });
+
+  it('rejects a payment sent from another account or with a changed amount', async () => {
+    const other = new StarknetWalletAdapter({ network: 'sepolia', rpc: rpc({ receipt: ok(transfers(walletPlan, '0x0999')), sender: '0x0999' }) });
+    const v1 = await other.verifyPayment(ref, walletPlan);
+    expect(v1.verified).toBe(false);
+    expect(v1.mismatches).toContain('Transaction was not sent by the paying account');
+
+    const tampered = new StarknetWalletAdapter({ network: 'sepolia', rpc: rpc({ receipt: ok(transfers(walletPlan, PAYER, true)), sender: PAYER }) });
+    expect((await tampered.verifyPayment(ref, walletPlan)).verified).toBe(false);
   });
 });

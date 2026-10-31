@@ -27,7 +27,8 @@ export const Button = forwardRef<
       disabled={disabled || loading}
       className={clsx(
         'inline-flex items-center justify-center gap-2 rounded-control font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-        size === 'sm' ? 'h-8 px-3 text-[13px]' : 'h-10 px-4 text-sm',
+        // Bigger targets on touch screens (44px for regular buttons).
+        size === 'sm' ? 'h-8 px-3 text-[13px] pointer-coarse:h-10' : 'h-10 px-4 text-sm pointer-coarse:h-11',
         variant === 'primary' && 'bg-settle text-white hover:bg-settle-strong',
         variant === 'secondary' && 'border border-line-strong bg-surface text-ink hover:bg-wash',
         variant === 'ghost' && 'text-ink-soft hover:bg-wash hover:text-ink',
@@ -43,7 +44,7 @@ export const Button = forwardRef<
 });
 
 const controlClass =
-  'h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-sm text-ink placeholder:text-ink-faint focus:border-settle focus:outline-none focus:ring-2 focus:ring-settle/15 disabled:bg-wash';
+  'h-10 w-full rounded-control border border-field bg-surface px-3 text-sm text-ink placeholder:text-ink-faint focus:border-settle focus:outline-none focus:ring-2 focus:ring-settle/15 disabled:bg-wash';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { mono?: boolean }>(function Input(
   { className, mono, ...rest },
@@ -51,6 +52,61 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
 ) {
   return <input ref={ref} className={clsx(controlClass, mono && 'font-mono text-[13px]', className)} {...rest} />;
 });
+
+/**
+ * Text input with a fixed prefix the user cannot delete, such as `sim:` for
+ * practice-mode addresses. The visible field holds only the part after the
+ * prefix; `value`, `onValueChange` and the submitted form field (`name`) all
+ * carry the full value including the prefix, or '' when nothing is typed.
+ */
+export function PrefixInput({
+  prefix,
+  name,
+  value,
+  defaultValue,
+  onValueChange,
+  lowercase,
+  className,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'defaultValue' | 'onChange' | 'prefix'> & {
+  prefix: string;
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (full: string) => void;
+  lowercase?: boolean;
+}) {
+  const strip = (v: string | undefined) => {
+    const s = v ?? '';
+    return s.startsWith(prefix) ? s.slice(prefix.length) : s;
+  };
+  const [inner, setInner] = useState(() => strip(defaultValue));
+  const suffix = value !== undefined ? strip(value) : inner;
+  return (
+    <div
+      className={clsx(
+        'flex h-10 w-full items-center overflow-hidden rounded-control border border-field bg-surface font-mono text-[13px] focus-within:border-settle focus-within:ring-2 focus-within:ring-settle/15',
+        className,
+      )}
+    >
+      <span className="flex h-full select-none items-center border-r border-line bg-wash px-3 text-ink-soft" aria-hidden>
+        {prefix}
+      </span>
+      <input
+        {...rest}
+        value={suffix}
+        onChange={(e) => {
+          // Pasting a full value ("sim:ngozi") should not double the prefix.
+          let next = strip(e.target.value.trim());
+          if (lowercase) next = next.toLowerCase();
+          if (value === undefined) setInner(next);
+          onValueChange?.(next ? prefix + next : '');
+        }}
+        className="h-full min-w-0 flex-1 bg-transparent px-3 text-ink placeholder:text-ink-faint focus:outline-none"
+      />
+      {name && <input type="hidden" name={name} value={suffix ? prefix + suffix : ''} />}
+    </div>
+  );
+}
 
 export function Select({ className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (

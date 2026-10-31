@@ -2,13 +2,13 @@
 
 import clsx from 'clsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronRight, FileClock, LayoutGrid, LogOut, Menu, Settings, Users, UserSquare2, Wallet2, X } from 'lucide-react';
+import { ChevronRight, FileClock, LayoutGrid, LogOut, Menu, Settings, UserRound, Users, UserSquare2, Wallet2, X } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { needsAttention } from '@/lib/attention';
-import { amount, networkLabel } from '@/lib/format';
+import { amount } from '@/lib/format';
 import { keys, useMe, useOrg, useTreasury } from '@/lib/hooks';
 import { SkeletonShell } from './loading';
 import { Logo } from './logo';
@@ -84,18 +84,18 @@ function Sidebar() {
 
   const groups: { title: string; items: NavItem[] }[] = [
     {
-      title: 'Payroll',
+      title: 'Pay',
       items: [
         { href: base, label: 'Overview', icon: LayoutGrid, exact: true },
-        { href: `${base}/batches`, label: 'Batches', icon: Wallet2, badge: waiting },
-        ...(org.can('contractors:read') ? [{ href: `${base}/contractors`, label: 'Contractors', icon: UserSquare2 }] : []),
+        { href: `${base}/batches`, label: 'Payouts', icon: Wallet2, badge: waiting },
+        ...(org.can('contractors:read') ? [{ href: `${base}/contractors`, label: 'People', icon: UserSquare2 }] : []),
       ],
     },
     {
-      title: 'Organisation',
+      title: 'Company',
       items: [
         { href: `${base}/team`, label: 'Team', icon: Users },
-        { href: `${base}/audit`, label: 'Audit log', icon: FileClock },
+        { href: `${base}/audit`, label: 'History', icon: FileClock },
         ...(org.can('org:manage') ? [{ href: `${base}/settings`, label: 'Settings', icon: Settings }] : []),
       ],
     },
@@ -158,7 +158,7 @@ function TreasuryCard() {
   return (
     <Link href={`/o/${o.id}`} className="block rounded-[12px] border border-line bg-surface p-3.5 hover:border-line-strong">
       <span className="flex items-center justify-between text-[12px] text-ink-faint">
-        Treasury
+        Funds
         <span className="flex items-center gap-1">
           <span className={clsx('size-1.5 rounded-full', t.data?.error ? 'bg-pending' : 'dot-live bg-settle')} aria-hidden />
           {t.data?.error ? 'Unavailable' : 'Live'}
@@ -206,6 +206,16 @@ function UserCard() {
           </div>
           <button
             type="button"
+            onClick={() => {
+              setOpen(false);
+              router.push(`/o/${org.data!.id}/profile`);
+            }}
+            className="flex w-full items-center gap-2 px-4 py-3 text-sm text-ink-soft hover:bg-wash hover:text-ink"
+          >
+            <UserRound className="size-4" /> Your profile
+          </button>
+          <button
+            type="button"
             onClick={async () => {
               await api.auth.logout();
               sessionStorage.removeItem('veyra:signed-in');
@@ -223,13 +233,14 @@ function UserCard() {
 }
 
 const SEGMENT_LABEL: Record<string, string> = {
-  batches: 'Batches',
-  contractors: 'Contractors',
+  batches: 'Payouts',
+  contractors: 'People',
   team: 'Team',
-  audit: 'Audit log',
+  audit: 'History',
   settings: 'Settings',
-  new: 'New batch',
+  new: 'New payout',
   receipt: 'Receipt',
+  profile: 'Your profile',
 };
 
 function TopBar({ onMenu }: { onMenu: () => void }) {
@@ -279,7 +290,11 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
       </nav>
       <span className="hidden items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-[12.5px] text-ink-soft md:flex">
         <span className={clsx('size-1.5 rounded-full', o.chain === 'simulated' ? 'bg-pending' : 'dot-live bg-settle')} aria-hidden />
-        {networkLabel(o.chain, o.network)}
+        {o.chain === 'simulated'
+          ? 'Practice · fake money'
+          : o.network === 'mainnet'
+            ? 'Real money'
+            : `${o.network.charAt(0).toUpperCase()}${o.network.slice(1)} · test tokens`}
       </span>
       {o.chain !== 'simulated' && <WalletButton expected={self?.walletAddress} />}
       <NotificationBell />

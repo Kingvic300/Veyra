@@ -12,7 +12,7 @@ import { useNotify, useToast, useWallet } from '@/components/providers';
 import { Button, Dialog, Field, Hash, Input, Notice, Panel, Pill, Spinner, Table } from '@/components/ui';
 import { WalletPicker } from '@/components/wallet-button';
 import { API_URL, VeyraApiError, api, errorMessage } from '@/lib/api';
-import { amount, date, explorerUrl } from '@/lib/format';
+import { amount, date, explorerUrl, shortHash } from '@/lib/format';
 import { keys, useCapabilities, useMe, useOrg } from '@/lib/hooks';
 import { sameAddress, type ConnectedWallet } from '@/lib/wallet';
 
@@ -38,8 +38,7 @@ export default function BatchPage() {
     refetchInterval: (q) => {
       const b = q.state.data;
       if (!b) return false;
-      const waiting =
-        b.status === 'EXECUTING' || b.proposal.status === 'PENDING' || b.approvals?.some((a) => a.status === 'PENDING_CHAIN');
+      const waiting = b.status === 'EXECUTING' || b.proposal.status === 'PENDING' || b.approvals?.some((a) => a.status === 'PENDING_CHAIN');
       return waiting ? 4000 : false;
     },
   });
@@ -68,9 +67,14 @@ export default function BatchPage() {
     const w = await requireWallet();
     if (!w) return null;
     const tx = await api.batches.chainAction(orgId, batchId, kind);
+    // Wallet mode pays from one specific account; any other wallet would move the wrong money.
+    const payer = tx.extra?.payer as string | undefined;
+    if (payer && !sameAddress(w.address, payer)) {
+      throw new Error(`Connect the paying wallet (${shortHash(payer)}) to pay this batch. The connected wallet is a different account.`);
+    }
     const actions = tx.extra?.strk20Actions as unknown[] | undefined;
     if (actions) {
-      if (!w.strk20) throw new Error('This wallet cannot send STRK20 private transfers. Connect a Wallet Standard privacy wallet.');
+      if (!w.strk20) throw new Error('This wallet cannot send private payments. Connect a wallet that supports them.');
       return w.strk20(actions);
     }
     return w.execute(tx.calls);
@@ -104,10 +108,12 @@ export default function BatchPage() {
       if (result === null) return;
       const done: Record<string, [string, string]> = {
         submit: ['Sent for approval', 'Approvers can review it now.'],
-        propose: ['Registration sent', 'Waiting for the block to confirm it.'],
-        approve: caps.data?.onChainApprovals ? ['Approval sent', 'It counts once the block confirms it.'] : ['Approved', 'Your approval is recorded.'],
-        execute: ['Payment sent', 'Settling now. This page updates when it is final.'],
-        reconcile: ['Checking the chain again', 'Status updates in a few seconds.'],
+        propose: ['Sent to the vault', 'Waiting for the network to confirm it.'],
+        approve: caps.data?.onChainApprovals
+          ? ['Approval sent', 'It counts once the network confirms it.']
+          : ['Approved', 'Your approval is recorded.'],
+        execute: ['Payment sent', 'This page updates when the payment is confirmed.'],
+        reconcile: ['Checking the payment again', 'Status updates in a few seconds.'],
       };
       toast('settle', done[kind]![0], done[kind]![1]);
       await refresh();
@@ -140,8 +146,8 @@ export default function BatchPage() {
     if (prev.status === 'EXECUTING' && b.status === 'COMPLETED') {
       notify.alert({
         tone: 'success',
-        title: 'Batch paid',
-        body: `${b.itemCount} contractors received ${amount(b.total, b.asset)}. Every payment was checked against the settlement transaction.`,
+        title: 'Payout paid',
+        body: `${b.itemCount} people received ${amount(b.total, b.asset)}. Every payment was checked against the blockchain record.`,
         action: { label: 'View receipt', href: `/o/${orgId}/batches/${batchId}/receipt` },
       });
     } else if (prev.status === 'EXECUTING' && b.status === 'FAILED') {
@@ -151,11 +157,15 @@ export default function BatchPage() {
         body: `${b.executions?.at(-1)?.error ?? 'The transaction failed'}. No funds left the treasury, so you can retry.`,
       });
     } else if (prev.status === 'PENDING_APPROVAL' && b.status === 'APPROVED') {
-      toast('settle', 'Batch fully approved', 'It is ready to pay.');
+      toast('settle', 'Fully approved', 'It is ready to pay.');
     }
-    if (prev.proposal === 'PENDING' && b.proposal.status === 'CONFIRMED') toast('settle', 'Registered on-chain', 'Approvers can now sign this batch.');
+    if (prev.proposal === 'PENDING' && b.proposal.status === 'CONFIRMED') toast('settle', 'Added to vault', 'Approvers can now approve this payout.');
     if (prev.proposal === 'PENDING' && b.proposal.status === 'FAILED') {
-      notify.alert({ tone: 'error', title: 'On-chain registration failed', body: 'The vault did not accept the batch. Check the transaction in the explorer, then register again.' });
+      notify.alert({
+        tone: 'error',
+        title: 'Could not add to vault',
+        body: 'The vault did not accept the payout. Check the transaction in the explorer, then try again.',
+      });
     }
     previous.current = { status: b.status, proposal: b.proposal.status };
   }, [batch.data, notify, toast, orgId, batchId]);
@@ -164,7 +174,7 @@ export default function BatchPage() {
     mutationFn: (reason: string) => api.batches.cancel(orgId, batchId, reason || undefined),
     onSuccess: async (r) => {
       setCancelOpen(false);
-      toast('neutral', 'Batch cancelled');
+      toast('neutral', 'Payout cancelled');
       if (r.onchainCancel) setOnchainCancel(r.onchainCancel);
       await refresh();
     },
@@ -210,18 +220,71 @@ export default function BatchPage() {
   if (b.status === 'DRAFT' && org.can('batches:write')) {
     primary = { label: 'Send for approval', kind: 'submit', disabled: validation.data ? !validation.data.ok : true };
   } else if (needsProposal && org.can('batches:write')) {
-    primary = { label: b.proposal.status === 'FAILED' ? 'Register on-chain again' : 'Register on-chain', kind: 'propose', note: 'Your wallet registers the frozen batch with the vault so approvers can sign it.' };
-  } else if (b.status === 'PENDING_APPROVAL' && org.can('batches:approve') && !myApproval && !approvalBlocked && !needsProposal && b.proposal.status !== 'PENDING') {
     primary = {
-      label: c.onChainApprovals ? 'Approve with wallet' : 'Approve batch',
+      label: b.proposal.status === 'FAILED' ? 'Try adding to vault again' : 'Add to vault',
+      kind: 'propose',
+      note: 'Your wallet adds this payout to the vault so approvers can approve it.',
+    };
+  } else if (
+    b.status === 'PENDING_APPROVAL' &&
+    org.can('batches:approve') &&
+    !myApproval &&
+    !approvalBlocked &&
+    !needsProposal &&
+    b.proposal.status !== 'PENDING'
+  ) {
+    primary = {
+      label: c.onChainApprovals ? 'Approve with wallet' : 'Approve payout',
       kind: 'approve',
       disabled: c.onChainApprovals && !self?.walletAddress,
       note: c.onChainApprovals && !self?.walletAddress ? 'Link your approver wallet on the Team page first.' : undefined,
     };
   } else if ((b.status === 'APPROVED' || b.status === 'FAILED') && org.can('batches:execute')) {
-    primary = { label: `${b.status === 'FAILED' ? 'Retry payment' : 'Pay'} ${b.itemCount} contractors`, kind: 'execute' };
+    primary = {
+      label: `${b.status === 'FAILED' ? 'Try again: pay' : 'Pay'} ${b.itemCount} ${b.itemCount === 1 ? 'person' : 'people'}`,
+      kind: 'execute',
+    };
   } else if (b.status === 'EXECUTING' || b.proposal.status === 'PENDING') {
-    primary = { label: 'Check the chain again', kind: 'reconcile' };
+    primary = { label: 'Check status again', kind: 'reconcile' };
+  }
+
+  // Plain-language headline: what happens next, and who is it waiting on.
+  const sum = b.approvalSummary;
+  const remaining = Math.max(0, sum.required - sum.confirmed);
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  let next: { title: string; body: string; invite?: boolean } | null = null;
+  if (b.status === 'DRAFT') {
+    next = { title: 'Check it, then send it for approval', body: 'Nothing is paid until enough people approve it. You can still edit it.' };
+  } else if (b.status === 'PENDING_APPROVAL') {
+    if (needsProposal)
+      next = { title: 'Add this payout to your vault', body: 'Your vault must know about this payout before anyone can approve it.' };
+    else if (sum.unreachable)
+      next = {
+        title: 'Invite approvers to continue',
+        body: `This payout needs ${plural(sum.required, 'approval', 'approvals')}${o.approvalPolicy.allowCreatorApproval ? '' : ' from people other than its creator'}, but not enough people on your team can approve yet.`,
+        invite: org.can('members:manage'),
+      };
+    else if (primary?.kind === 'approve')
+      next = { title: 'Your approval is needed', body: 'Check the people and amounts below. If they are right, approve.' };
+    else if (myApproval)
+      next = {
+        title: `Waiting for ${plural(remaining, 'more approval', 'more approvals')}`,
+        body: 'You approved. It can be paid once the others approve too.',
+      };
+    else if (approvalBlocked)
+      next = {
+        title: `Waiting for ${plural(remaining, 'approval', 'approvals')}`,
+        body: 'You created this payout, so someone else has to approve it.',
+      };
+    else next = { title: `Waiting for ${plural(remaining, 'approval', 'approvals')}`, body: 'It can be paid once enough people approve.' };
+  } else if (b.status === 'APPROVED') {
+    next = org.can('batches:execute')
+      ? { title: 'Ready to pay', body: 'Everyone needed has approved. Pay now to send the money.' }
+      : { title: 'Approved', body: 'Waiting for an owner or admin to pay it.' };
+  } else if (b.status === 'FAILED') {
+    next = { title: 'The payment did not go through', body: 'No money moved, so it is safe to try again.' };
+  } else if (b.status === 'EXECUTING') {
+    next = { title: 'Paying now', body: 'This page updates by itself when the payment is confirmed.' };
   }
 
   return (
@@ -229,22 +292,34 @@ export default function BatchPage() {
       <div className="mb-8 flex flex-wrap items-start justify-between gap-6">
         <div className="min-w-0">
           <Link href={`/o/${orgId}/batches`} className="text-sm text-ink-soft hover:text-ink">
-            Payroll
+            Payouts
           </Link>
           <h1 className="mt-1 text-[28px] font-semibold">{b.title}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-soft">
             <StatusPill status={b.status} />
             <span>Created {date(b.createdAt)}</span>
-            <Pill tone={b.shielded ? 'settle' : 'neutral'}>{b.privacyLabel}</Pill>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm text-ink-soft">{b.itemCount} payments</p>
+          <p className="text-sm text-ink-soft">{b.itemCount} {b.itemCount === 1 ? 'payment' : 'payments'}</p>
           <p className="text-[30px] font-semibold leading-tight tracking-[-0.02em]">{amount(b.total, b.asset)}</p>
         </div>
       </div>
 
-      <section className="rounded-panel border border-line bg-surface p-6" aria-label="Settlement">
+      <section className="rounded-panel border border-line bg-surface p-6" aria-label="Payment progress">
+        {next && (
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5" aria-live="polite">
+            <div className="min-w-0">
+              <p className="text-[18px] font-semibold">{next.title}</p>
+              <p className="mt-0.5 max-w-[65ch] text-sm text-ink-soft">{next.body}</p>
+            </div>
+            {next.invite && (
+              <Link href={`/o/${orgId}/team`}>
+                <Button>Invite approvers</Button>
+              </Link>
+            )}
+          </div>
+        )}
         <SettlementRail batch={b} chain={o.chain} network={o.network} requiresProposal={c.requiresProposal} />
         {(primary || canCancel || b.status === 'DRAFT' || (b.status === 'PENDING_APPROVAL' && (myApproval || approvalBlocked))) && (
           <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line pt-5">
@@ -266,24 +341,24 @@ export default function BatchPage() {
             )}
             {canCancel && (
               <Button variant="ghost" onClick={() => setCancelOpen(true)}>
-                Cancel batch
+                Cancel payout
               </Button>
             )}
             {primary?.note && <p className="text-[13px] text-ink-soft">{primary.note}</p>}
-            {myApproval && b.status === 'PENDING_APPROVAL' && <p className="text-[13px] text-ink-soft">You approved this batch.</p>}
-            {approvalBlocked && b.status === 'PENDING_APPROVAL' && (
-              <p className="text-[13px] text-ink-soft">You created this batch, so someone else has to approve it.</p>
-            )}
           </div>
         )}
         {walletMismatch && (
           <div className="mt-4">
-            <Notice tone="pending">
-              The connected wallet is not the one linked to your membership. On-chain approvals from it will not count.
+            <Notice tone="pending">The connected wallet is not the one linked to your membership. Approvals from it will not count.</Notice>
+          </div>
+        )}
+        {b.proposal.status === 'FAILED' && (
+          <div className="mt-4">
+            <Notice tone="fail" title="Could not add to vault">
+              Check the transaction in the explorer, then try again.
             </Notice>
           </div>
         )}
-        {b.proposal.status === 'FAILED' && <div className="mt-4"><Notice tone="fail" title="On-chain registration failed">Check the transaction in the explorer, then register again.</Notice></div>}
         {lastExecution?.status === 'FAILED' && lastExecution.error && (
           <div className="mt-4">
             <Notice tone="fail" title="Payment did not go through">
@@ -330,8 +405,8 @@ export default function BatchPage() {
               <Table>
                 <thead>
                   <tr>
-                    <th>Contractor</th>
-                    <th>Payout wallet</th>
+                    <th>Person</th>
+                    <th>Wallet</th>
                     <th className="text-right">Amount</th>
                     <th>Status</th>
                   </tr>
@@ -359,7 +434,7 @@ export default function BatchPage() {
                 </tbody>
               </Table>
             ) : (
-              <p className="p-5 text-sm text-ink-soft">Your role sees batch totals only. Contractor details are limited to owners, admins and approvers.</p>
+              <p className="p-5 text-sm text-ink-soft">Your role sees totals only. Who is paid what is visible to owners, admins and approvers.</p>
             )}
           </Panel>
 
@@ -367,11 +442,14 @@ export default function BatchPage() {
             <Panel title="Payment attempts" padded={false}>
               <ul>
                 {b.executions!.map((e) => (
-                  <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3.5 text-sm first:border-t-0">
+                  <li
+                    key={e.id}
+                    className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3.5 text-sm first:border-t-0"
+                  >
                     <span className="flex items-center gap-3">
                       <span className="text-ink-soft">Attempt {e.attempt}</span>
                       <Pill tone={e.status === 'CONFIRMED' ? 'settle' : e.status === 'FAILED' ? 'fail' : 'pending'} live={e.status === 'SUBMITTED'}>
-                        {e.status === 'CONFIRMED' ? 'Settled' : e.status === 'FAILED' ? 'Failed' : 'Waiting for the block'}
+                        {e.status === 'CONFIRMED' ? 'Confirmed' : e.status === 'FAILED' ? 'Failed' : 'Waiting for the network'}
                       </Pill>
                     </span>
                     {e.txHash && <Hash value={e.txHash} href={explorerUrl(o.chain, o.network, 'tx', e.txHash)} />}
@@ -405,52 +483,57 @@ export default function BatchPage() {
               ))}
               {(b.approvals?.length ?? 0) === 0 && <li className="text-sm text-ink-faint">No approvals yet.</li>}
             </ul>
-            {b.approvalSummary.unreachable && (
-              <div className="mt-4">
-                <Notice tone="pending">Not enough members can approve to reach the threshold. Add approvers on the Team page.</Notice>
-              </div>
-            )}
           </Panel>
 
-          <Panel title="Who can see what">
-            <PrivacyPanel privacy={c.privacy} />
-          </Panel>
+          <details className="group rounded-panel border border-line bg-surface">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[15px] font-semibold">
+              Privacy and proof
+              <span className="text-[13px] font-normal text-ink-faint group-open:hidden">Show</span>
+              <span className="hidden text-[13px] font-normal text-ink-faint group-open:inline">Hide</span>
+            </summary>
+            <div className="flex flex-col gap-6 border-t border-line p-4">
+              <Panel title="Who can see this">
+                <PrivacyPanel privacy={c.privacy} />
+              </Panel>
 
-          {b.commitment && (
-            <Panel title="Proof of contents">
-              <p className="text-[13px] text-ink-soft">
-                Fingerprints of the exact recipients and amounts, fixed when the batch was submitted. Any later change would produce different values.
-              </p>
-              <dl className="mt-4 flex flex-col gap-3 text-sm">
-                <div>
-                  <dt className="mb-1 text-ink-soft">Batch commitment (SHA-256)</dt>
-                  <dd>
-                    <Hash value={b.commitment} />
-                  </dd>
-                </div>
-                {b.chainItemsHash && (
-                  <div>
-                    <dt className="mb-1 text-ink-soft">Vault items hash (Poseidon)</dt>
-                    <dd>
-                      <Hash value={b.chainItemsHash} />
-                    </dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="mb-1 text-ink-soft">On-chain batch id</dt>
-                  <dd>
-                    <Hash value={b.chainBatchId} />
-                  </dd>
-                </div>
-              </dl>
-            </Panel>
-          )}
+              {b.commitment && (
+                <Panel title="Proof nothing changed">
+                  <p className="text-[13px] text-ink-soft">
+                    Fingerprints of the exact recipients and amounts, fixed when the payout was sent for approval. Any later change would produce
+                    different values.
+                  </p>
+                  <dl className="mt-4 flex flex-col gap-3 text-sm">
+                    <div>
+                      <dt className="mb-1 text-ink-soft">Payout fingerprint (SHA-256)</dt>
+                      <dd>
+                        <Hash value={b.commitment} />
+                      </dd>
+                    </div>
+                    {b.chainItemsHash && (
+                      <div>
+                        <dt className="mb-1 text-ink-soft">Vault fingerprint (Poseidon)</dt>
+                        <dd>
+                          <Hash value={b.chainItemsHash} />
+                        </dd>
+                      </div>
+                    )}
+                    <div>
+                      <dt className="mb-1 text-ink-soft">Payout ID in the vault</dt>
+                      <dd>
+                        <Hash value={b.chainBatchId} />
+                      </dd>
+                    </div>
+                  </dl>
+                </Panel>
+              )}
+            </div>
+          </details>
         </div>
       </div>
 
       <WalletPicker open={walletOpen} onClose={() => setWalletOpen(false)} />
 
-      <Dialog open={cancelOpen} onClose={() => setCancelOpen(false)} title="Cancel this batch?">
+      <Dialog open={cancelOpen} onClose={() => setCancelOpen(false)} title="Cancel this payout?">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -458,7 +541,7 @@ export default function BatchPage() {
           }}
           className="flex flex-col gap-4"
         >
-          <p className="text-sm text-ink-soft">Nobody will be paid from it. Cancelled batches stay in the audit log.</p>
+          <p className="text-sm text-ink-soft">Nobody will be paid from it. Cancelled payouts stay in your history.</p>
           <Field label="Reason (optional)" htmlFor="reason">
             <Input id="reason" name="reason" maxLength={500} />
           </Field>
@@ -473,10 +556,8 @@ export default function BatchPage() {
         </form>
       </Dialog>
 
-      <Dialog open={!!onchainCancel} onClose={() => setOnchainCancel(null)} title="Cancel it on-chain too">
-        <p className="text-sm text-ink-soft">
-          This batch is registered with the vault. Cancelling it there stops anyone from executing it outside Veyra.
-        </p>
+      <Dialog open={!!onchainCancel} onClose={() => setOnchainCancel(null)} title="Cancel it in the vault too">
+        <p className="text-sm text-ink-soft">This payout is in the vault. Cancelling it there stops anyone from paying it outside Veyra.</p>
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setOnchainCancel(null)}>
             Later
@@ -488,7 +569,7 @@ export default function BatchPage() {
                 const w = await requireWallet();
                 if (!w || !onchainCancel) return;
                 const hash = await w.execute(onchainCancel.calls);
-                toast('settle', `On-chain cancellation sent (${hash.slice(0, 10)}…)`);
+                toast('settle', `Cancellation sent to the vault (${hash.slice(0, 10)}…)`);
                 setOnchainCancel(null);
               } catch (err) {
                 toast('fail', errorMessage(err));

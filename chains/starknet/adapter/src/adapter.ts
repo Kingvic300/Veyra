@@ -24,9 +24,10 @@ import {
   proposeCall,
   sameAddress,
   type OnchainBatch,
+  transferCall,
 } from './encoding';
 import { findApproved, findExecuted, findPayments, findProposed, findTokenTransfers, type RawEvent } from './events';
-import { STRK20_POOL_ADDRESSES, STRK20_PRIVACY, VAULT_PRIVACY } from './privacy';
+import { STRK20_POOL_ADDRESSES, STRK20_PRIVACY, VAULT_PRIVACY, WALLET_PRIVACY } from './privacy';
 
 /** The subset of the Starknet JSON-RPC the adapter uses. `RpcProvider` satisfies it. */
 export interface StarknetRpc {
@@ -56,6 +57,8 @@ interface Receipt {
 
 /** Vault contract limit; keep in sync with `MAX_BATCH_ITEMS` in payroll_vault.cairo. */
 export const VAULT_MAX_BATCH_ITEMS = 100;
+/** Transfers per multicall in wallet mode. */
+export const WALLET_MAX_BATCH_ITEMS = 100;
 
 abstract class StarknetAdapterBase implements ChainAdapter {
   protected readonly rpc: StarknetRpc;
@@ -413,7 +416,102 @@ export class StarknetStrk20Adapter extends StarknetAdapterBase {
   }
 }
 
+/**
+ * Pays straight from the organisation's own Starknet account: one multicall of
+ * ERC-20 transfers, signed by that account's wallet. No contract to deploy.
+ * Approvals are enforced by the Veyra API, so whoever holds the paying wallet
+ * can still move funds outside Veyra.
+ */
+export class StarknetWalletAdapter extends StarknetAdapterBase {
+  private readonly maxBatchSize: number;
+
+  constructor(opts: StarknetAdapterOptions) {
+    super(opts);
+    // Each payment is one call in the multicall; keep transactions well under step limits.
+    this.maxBatchSize = Math.min(opts.maxBatchSize ?? WALLET_MAX_BATCH_ITEMS, WALLET_MAX_BATCH_ITEMS);
+  }
+
+  getCapabilities(): ChainCapabilities {
+    return {
+      chain: 'starknet',
+      network: this.network,
+      executionMode: 'wallet',
+      onChainApprovals: false,
+      requiresProposal: false,
+      signing: 'browser-wallet',
+      maxBatchSize: this.maxBatchSize,
+      finality: this.finality === 'L2' ? 'ACCEPTED_ON_L2' : 'ACCEPTED_ON_L1',
+      verifiableAmounts: true,
+      privacy: WALLET_PRIVACY,
+    };
+  }
+
+  computeItemsHash(): null {
+    return null;
+  }
+
+  buildProposal(): null {
+    return null;
+  }
+
+  buildApproval(): null {
+    return null;
+  }
+
+  buildCancellation(): null {
+    return null;
+  }
+
+  createPayment(plan: BatchPlan): UnsignedTransaction {
+    this.assertSize(plan, this.maxBatchSize);
+    const payer = this.requireTreasury(plan);
+    return {
+      chain: 'starknet',
+      network: this.network,
+      kind: 'execute',
+      description: `Pay ${plan.items.length} contractors from your wallet`,
+      calls: plan.items.map((i) => transferCall(plan.asset.address, i.recipient, i.amount)),
+      // The dashboard refuses to sign from any other account.
+      extra: { payer },
+    };
+  }
+
+  async verifyProposal(): Promise<VerificationResult> {
+    return { verified: true, details: ['No on-chain proposal in wallet mode'], mismatches: [] };
+  }
+
+  async verifyApproval(): Promise<VerificationResult> {
+    return { verified: true, details: ['Approvals are enforced by the Veyra API in wallet mode'], mismatches: [] };
+  }
+
+  async verifyPayment(ref: TransactionRef, plan: BatchPlan): Promise<PaymentVerification> {
+    const checkedAt = new Date().toISOString();
+    const payer = this.requireTreasury(plan);
+    const { receipt, problems } = await this.settledReceipt(ref);
+    if (problems.length) return { verified: false, method: 'onchain-events', checkedAt, details: [], mismatches: problems };
+
+    const mismatches: string[] = [];
+    const tx = (await this.rpc.getTransactionByHash(ref.txHash).catch((err: unknown) => {
+      throw this.networkError(err);
+    })) as { sender_address?: string };
+    if (!tx.sender_address || !sameAddress(tx.sender_address, payer)) mismatches.push('Transaction was not sent by the paying account');
+
+    const expected: BatchPlan = { ...plan, items: plan.items.map((i) => ({ recipient: canonical(i.recipient), amount: i.amount })) };
+    const transfers = findTokenTransfers(receipt!.events ?? [], plan.asset.address).filter((t) => sameAddress(t.from, payer));
+    mismatches.push(...compareTransfers(expected, transfers.map((t) => ({ to: canonical(t.to), amount: t.amount }))).map((m) => `Token event: ${m}`));
+
+    return {
+      verified: mismatches.length === 0,
+      method: 'onchain-events',
+      checkedAt,
+      details: [`${transfers.length} token transfers from the paying account in block ${receipt!.block_number ?? 'unknown'}`],
+      mismatches,
+    };
+  }
+}
+
 export function createStarknetAdapter(mode: ExecutionMode, opts: StarknetAdapterOptions): ChainAdapter {
+  if (mode === 'wallet') return new StarknetWalletAdapter(opts);
   if (mode === 'vault') return new StarknetVaultAdapter(opts);
   if (mode === 'strk20-private') return new StarknetStrk20Adapter(opts);
   throw new ChainAdapterError('UNSUPPORTED', `Starknet does not support execution mode ${mode}`);

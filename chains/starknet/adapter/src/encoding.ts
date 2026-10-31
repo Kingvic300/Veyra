@@ -42,6 +42,11 @@ export function computeItemsHash(
   return num.toHex(hash.computePoseidonHashOnElements(data));
 }
 
+/** ERC-20 `transfer(recipient, amount: u256)` on the token contract. */
+export function transferCall(token: string, recipient: string, amount: bigint): ChainCall {
+  return { contractAddress: normaliseAddress(token), entrypoint: 'transfer', calldata: [normaliseAddress(recipient), ...splitU256(amount)] };
+}
+
 export function selector(name: string): string {
   return num.toHex(hash.getSelectorFromName(name));
 }

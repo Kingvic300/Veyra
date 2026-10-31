@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && npm ci --workspace @veyra/dashboard --include-workspace-root",
+  "buildCommand": "cd ../.. && npm run build -w @veyra/core -w @veyra/chain-adapter -w @veyra/sdk -w @veyra/dashboard",
+  "outputDirectory": ".next"
+}

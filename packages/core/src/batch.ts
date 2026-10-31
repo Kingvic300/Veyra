@@ -66,5 +66,5 @@ export function assertPaymentTransition(from: PaymentStatus, to: PaymentStatus):
 }
 
 /** How a batch is executed on the selected network. */
-export const EXECUTION_MODES = ['vault', 'strk20-private', 'simulated'] as const;
+export const EXECUTION_MODES = ['wallet', 'vault', 'strk20-private', 'simulated'] as const;
 export type ExecutionMode = (typeof EXECUTION_MODES)[number];

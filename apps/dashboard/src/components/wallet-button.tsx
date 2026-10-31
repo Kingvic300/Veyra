@@ -9,10 +9,10 @@ import { useWallet } from './providers';
 import { Button, Dialog, Hash, Notice } from './ui';
 
 export function WalletPicker({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { options, connect, connecting, error } = useWallet();
+  const { options, connect, connecting } = useWallet();
   return (
     <Dialog open={open} onClose={onClose} title="Connect a Starknet wallet">
-      <p className="text-sm text-ink-soft">Your wallet shows every transaction before you sign. Veyra never holds your keys.</p>
+      <p className="text-sm text-ink-soft">Your wallet shows every transaction and asks you to confirm it. Veyra never holds your keys.</p>
       <div className="mt-5 flex flex-col gap-2">
         {options.length === 0 && <Notice>No Starknet wallet found in this browser. Install Ready or Braavos, then reload the page.</Notice>}
         {options.map((o) => (
@@ -30,7 +30,6 @@ export function WalletPicker({ open, onClose }: { open: boolean; onClose: () => 
             {o.standard && <span className="text-[12px] text-ink-faint">Wallet Standard</span>}
           </button>
         ))}
-        {error && <Notice tone="fail">{error}</Notice>}
       </div>
     </Dialog>
   );
@@ -72,11 +71,11 @@ export function WalletButton({ expected }: { expected?: string | null }) {
             <p className="text-[12.5px] text-ink-faint">Connected with {wallet.name}</p>
             <Hash value={wallet.address} className="mt-2" />
             {mismatch ? (
-              <p className="mt-3 text-[13px] text-pending">This is not the wallet linked to your membership. On-chain approvals from it will not count.</p>
+              <p className="mt-3 text-[13px] text-pending">This is not the wallet linked to your membership. Approvals from it will not count.</p>
             ) : expected ? (
               <p className="mt-3 text-[13px] text-settle-strong">Linked to your membership.</p>
             ) : (
-              <p className="mt-3 text-[13px] text-ink-soft">Link it on the Team page to approve on-chain.</p>
+              <p className="mt-3 text-[13px] text-ink-soft">Link it on the Team page to approve with it.</p>
             )}
           </div>
           <button

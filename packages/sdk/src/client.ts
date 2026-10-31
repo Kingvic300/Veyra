@@ -21,6 +21,9 @@ import type {
   UpdateMemberInput,
   UpdateOrganisationInput,
   User,
+  Invitation,
+  InvitationPreview,
+  InviteResult,
 } from '@veyra/core';
 import type { ChainCapabilities, TransactionKind, UnsignedTransaction } from '@veyra/chain-adapter';
 
@@ -104,15 +107,29 @@ export class VeyraClient {
 
   // ---- Auth ----
   readonly auth = {
-    register: (input: { email: string; name: string; password: string }) =>
-      this.request<{ user: User; token: string }>('POST', '/auth/register', input).then((r) => this.remember(r)),
+    /** Pass `inviteToken` from an invitation link to join that organisation on sign-up. */
+    register: (input: { email: string; name: string; password: string; inviteToken?: string }) =>
+      this.request<{ user: User; token: string; joinedOrganisationId?: string }>('POST', '/auth/register', input).then((r) => this.remember(r)),
     login: (input: { email: string; password: string }) =>
       this.request<{ user: User; token: string }>('POST', '/auth/login', input).then((r) => this.remember(r)),
     logout: () => this.request<void>('POST', '/auth/logout').then(() => this.setToken(undefined)),
     me: () => this.request<User>('GET', '/auth/me'),
+    updateProfile: (input: { name: string }) => this.request<User>('PATCH', '/auth/me', input),
+    /** Signs out on every device, this one included. */
+    signOutEverywhere: () => this.request<void>('POST', '/auth/sessions/revoke').then(() => this.setToken(undefined)),
+    /** Emails a reset link if the address has an account. Always resolves the same way. */
+    forgotPassword: (input: { email: string }) => this.request<{ ok: true }>('POST', '/auth/password/forgot', input),
+    /** Sets a new password from an emailed token. Signs out every session. */
+    resetPassword: (input: { token: string; password: string }) =>
+      this.request<void>('POST', '/auth/password/reset', input).then(() => this.setToken(undefined)),
+    /** Changes the password while signed in. Signs out every other session. */
+    changePassword: (input: { currentPassword: string; newPassword: string }) =>
+      this.request<{ token: string }>('POST', '/auth/password/change', input).then((r) => {
+        if (!this.opts.useCookies) this.token = r.token;
+      }),
   };
 
-  private remember(r: { user: User; token: string }) {
+  private remember<T extends { user: User; token: string }>(r: T): T {
     if (!this.opts.useCookies) this.token = r.token;
     return r;
   }
@@ -136,6 +153,24 @@ export class VeyraClient {
     update: (orgId: string, memberId: string, input: UpdateMemberInput) =>
       this.request<Member>('PATCH', `/organisations/${orgId}/members/${memberId}`, input),
     remove: (orgId: string, memberId: string) => this.request<void>('DELETE', `/organisations/${orgId}/members/${memberId}`),
+  };
+
+  /** Create a real-money copy of a practice organisation (team, rules and people with real wallets). */
+  goLive = (practiceOrgId: string, input: CreateOrganisationInput) =>
+    this.request<{
+      organisation: Organisation;
+      copiedMembers: number;
+      copiedPeople: number;
+      peopleNeedingWallets: { name: string; email: string | null; country: string | null }[];
+    }>('POST', `/organisations/${practiceOrgId}/go-live`, input);
+
+  readonly invitations = {
+    /** Existing accounts join now; anyone else is emailed an invitation link. */
+    invite: (orgId: string, input: AddMemberInput) => this.request<InviteResult>('POST', `/organisations/${orgId}/invitations`, input),
+    list: (orgId: string) => this.request<Invitation[]>('GET', `/organisations/${orgId}/invitations`),
+    revoke: (orgId: string, invitationId: string) => this.request<void>('DELETE', `/organisations/${orgId}/invitations/${invitationId}`),
+    preview: (token: string) => this.request<InvitationPreview>('GET', `/invitations/${encodeURIComponent(token)}`),
+    accept: (token: string) => this.request<{ organisationId: string }>('POST', '/invitations/accept', { token }),
   };
 
   readonly contractors = {

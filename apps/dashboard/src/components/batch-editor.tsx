@@ -7,7 +7,8 @@ import { AmountError, formatUnits, parseUnits, type Asset, type PayrollItem } fr
 import { api, errorMessage } from '@/lib/api';
 import { amount } from '@/lib/format';
 import { keys } from '@/lib/hooks';
-import { Button, Empty, Field, Input, Notice, Select } from './ui';
+import { useToast } from './providers';
+import { Button, Empty, Field, Input, Select } from './ui';
 
 interface Row {
   key: number;
@@ -27,13 +28,16 @@ export function BatchEditor({
   asset,
   initial,
   submitLabel,
+  secondaryLabel,
   onSave,
 }: {
   orgId: string;
   asset: Asset;
   initial?: { title: string; items: PayrollItem[] };
   submitLabel: string;
-  onSave: (draft: BatchDraft) => Promise<unknown>;
+  /** Optional second button; `onSave` receives which one was pressed. */
+  secondaryLabel?: string;
+  onSave: (draft: BatchDraft, intent: 'primary' | 'secondary') => Promise<unknown>;
 }) {
   const contractors = useQuery({ queryKey: keys.contractors(orgId), queryFn: () => api.contractors.list(orgId) });
   const [title, setTitle] = useState(initial?.title ?? defaultTitle());
@@ -42,8 +46,8 @@ export function BatchEditor({
       { key: nextKey++, contractorId: '', amount: '' },
     ],
   );
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const toast = useToast();
+  const [saving, setSaving] = useState<'primary' | 'secondary' | null>(null);
 
   const used = new Set(rows.map((r) => r.contractorId).filter(Boolean));
   const totals = useMemo(() => {
@@ -67,43 +71,43 @@ export function BatchEditor({
     setRows((rs) => [...rs.filter((r) => r.contractorId || r.amount), ...missing.map((c) => ({ key: nextKey++, contractorId: c.id, amount: '' }))]);
   }
 
-  async function submit(e: FormEvent) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
+    const intent = ((e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null)?.value === 'secondary' ? 'secondary' : 'primary';
     const items = rows.filter((r) => r.contractorId || r.amount);
-    if (items.some((r) => !r.contractorId || !r.amount)) return setError('Every row needs a contractor and an amount.');
-    if (totals.invalid.size) return setError(`Use plain amounts with at most ${asset.decimals} decimal places, such as 1250.50.`);
-    setSaving(true);
+    if (items.some((r) => !r.contractorId || !r.amount)) return toast('fail', 'Every row needs a person and an amount.');
+    if (totals.invalid.size) return toast('fail', `Use plain amounts with at most ${asset.decimals} decimal places, such as 1250.50.`);
+    setSaving(intent);
     try {
-      await onSave({ title, items: items.map((r) => ({ contractorId: r.contractorId, amount: r.amount.trim() })) });
+      await onSave({ title, items: items.map((r) => ({ contractorId: r.contractorId, amount: r.amount.trim() })) }, intent);
     } catch (err) {
-      setError(errorMessage(err));
+      toast('fail', errorMessage(err));
     } finally {
-      setSaving(false);
+      setSaving(null);
     }
   }
 
   if (contractors.data && contractors.data.length === 0) {
-    return <Empty title="Add contractors first" body="A batch pays existing contractors. Add the people you pay and their payout wallets, then come back." />;
+    return <Empty title="Add people first" body="A payout pays people from your list. Add the people you pay and their wallets, then come back." />;
   }
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <Field label="Batch name" htmlFor="title" hint="People approving will see this name.">
+      <Field label="Payout name" htmlFor="title" hint="People approving will see this name.">
         <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={160} />
       </Field>
 
       <div className="rounded-panel border border-line bg-surface">
         <div className="grid grid-cols-[1fr_11rem_2.5rem] gap-3 border-b border-line px-5 py-2.5 text-[12.5px] font-medium text-ink-faint">
-          <span>Contractor</span>
+          <span>Person</span>
           <span>Amount ({asset.symbol})</span>
           <span className="sr-only">Remove</span>
         </div>
         <ul>
           {rows.map((r, i) => (
             <li key={r.key} className="grid grid-cols-[1fr_11rem_2.5rem] items-center gap-3 border-b border-line px-5 py-2.5 last:border-b-0">
-              <Select value={r.contractorId} onChange={(e) => update(r.key, { contractorId: e.target.value })} aria-label={`Contractor for row ${i + 1}`}>
-                <option value="">Choose a contractor</option>
+              <Select value={r.contractorId} onChange={(e) => update(r.key, { contractorId: e.target.value })} aria-label={`Person for row ${i + 1}`}>
+                <option value="">Choose a person</option>
                 {contractors.data?.map((c) => (
                   <option key={c.id} value={c.id} disabled={used.has(c.id) && c.id !== r.contractorId}>
                     {c.name}
@@ -137,7 +141,7 @@ export function BatchEditor({
               Add row
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={addEveryone}>
-              Add every contractor
+              Add everyone
             </Button>
           </div>
           <p className="text-sm">
@@ -146,16 +150,20 @@ export function BatchEditor({
         </div>
       </div>
 
-      {error && <Notice tone="fail">{error}</Notice>}
-      <div>
-        <Button type="submit" loading={saving}>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" value="primary" loading={saving === 'primary'} disabled={saving !== null}>
           {submitLabel}
         </Button>
+        {secondaryLabel && (
+          <Button type="submit" value="secondary" variant="secondary" loading={saving === 'secondary'} disabled={saving !== null}>
+            {secondaryLabel}
+          </Button>
+        )}
       </div>
     </form>
   );
 }
 
 function defaultTitle() {
-  return `${new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(new Date())} contractors`;
+  return `${new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(new Date())} payout`;
 }

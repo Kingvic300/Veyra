@@ -15,6 +15,8 @@ import { AuditService } from './audit/audit.service.js';
 import { AuditController } from './audit/audit.controller.js';
 import { ChainService } from './chain/chain.service.js';
 import { OrganisationsService } from './organisations/organisations.service.js';
+import { InvitationsService } from './organisations/invitations.service.js';
+import { GoLiveService } from './organisations/go-live.service.js';
 import { OrganisationsController } from './organisations/organisations.controller.js';
 import { ContractorsService } from './contractors/contractors.service.js';
 import { ContractorsController } from './contractors/contractors.controller.js';
@@ -25,6 +27,8 @@ import { ReconcilerService } from './jobs/reconciler.service.js';
 import { HealthController } from './health.controller.js';
 import { StatsController } from './stats/stats.controller.js';
 import { StatsService } from './stats/stats.service.js';
+import { MailService } from './mail/mail.service.js';
+import { PasswordResetService } from './auth/password-reset.service.js';
 
 class PoolCloser implements OnApplicationShutdown {
   constructor(@Inject(PG_POOL) private readonly pool: pg.Pool) {}
@@ -66,10 +70,14 @@ export class AppModule {
         AuditService,
         ChainService,
         OrganisationsService,
+        InvitationsService,
+        GoLiveService,
         ContractorsService,
         BatchesService,
         ReconcilerService,
         StatsService,
+        MailService,
+        PasswordResetService,
       ],
     };
   }
