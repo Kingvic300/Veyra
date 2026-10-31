@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { ExecutionMode } from '@veyra/core';
 import { Logo } from '@/components/logo';
-import { Button, Field, Input, Notice, Select, Spinner } from '@/components/ui';
+import { BrandLoader } from '@/components/loading';
+import { Button, Field, Input, Notice, Select } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { networkLabel } from '@/lib/format';
 import { keys, useMe } from '@/lib/hooks';
@@ -79,7 +80,7 @@ export default function OnboardingPage() {
     create.mutate(new FormData(e.currentTarget));
   }
 
-  if (!me.data || networks.isLoading) return <Spinner />;
+  if (!me.data || networks.isLoading) return <BrandLoader label="Loading" />;
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-14">

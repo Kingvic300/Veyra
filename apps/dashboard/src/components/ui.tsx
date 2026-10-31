@@ -161,11 +161,13 @@ export function Empty({ title, body, action }: { title: string; body: ReactNode;
   );
 }
 
+/** Inline loading placeholder shaped like a list. */
 export function Spinner({ label = 'Loading' }: { label?: string }) {
   return (
-    <div className="flex items-center gap-2 py-10 text-sm text-ink-faint" role="status">
-      <LoaderCircle className="size-4 animate-spin" aria-hidden />
-      {label}
+    <div className="flex flex-col gap-3 py-6" role="status" aria-label={label}>
+      <span className="skeleton block h-4 w-2/5 rounded-md" />
+      <span className="skeleton block h-4 w-3/5 rounded-md" />
+      <span className="skeleton block h-4 w-1/3 rounded-md" />
     </div>
   );
 }
