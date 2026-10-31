@@ -44,6 +44,33 @@ export default function AboutPage() {
           ))}
         </ul>
       </section>
+      <section className="border-t border-line bg-[#f4f7f5]">
+        <div className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
+          <h2 className="text-[30px] font-semibold tracking-[-0.025em]">Where Veyra is going</h2>
+          <ol className="relative mt-10 grid gap-8 md:grid-cols-3 xl:grid-cols-6">
+            <span className="absolute left-0 right-0 top-[7px] hidden h-0.5 bg-line-strong xl:block" aria-hidden />
+            {(
+              [
+                ['Now', 'Starknet payroll vault', 'Contract-enforced approvals, verified receipts, sandbox.', true],
+                ['Now', 'STRK20 preview', 'Private transfers for teams with privacy-enabled wallets.', true],
+                ['Next', 'Testnet pilots', 'Five teams running real payroll cycles on Sepolia.', false],
+                ['Next', 'Independent audit', 'External review of the PayrollVault before mainnet.', false],
+                ['Later', 'Stellar', 'Soroban contracts for stablecoin payroll.', false],
+                ['Later', 'More networks', 'Sui, Solana, Ethereum, then Bitcoin and Lightning.', false],
+              ] as const
+            ).map(([when, title, body, done]) => (
+              <li key={title} className="relative">
+                <span
+                  className={`relative z-10 block size-4 rounded-full border-2 ring-4 ring-[#f4f7f5] ${done ? 'border-settle bg-settle' : 'border-line-strong bg-surface'}`}
+                />
+                <p className={`mt-4 text-[13px] font-medium ${done ? 'text-settle' : 'text-ink-faint'}`}>{when}</p>
+                <h3 className="mt-1 font-semibold">{title}</h3>
+                <p className="mt-1 text-[14px] leading-relaxed text-ink-soft">{body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
       <section className="border-t border-line">
         <div className="w-full flex flex-wrap items-center justify-between gap-6 px-5 py-14 sm:px-8 lg:px-16 xl:px-20">
           <p className="max-w-[48ch] text-lg">Want to pilot Veyra with your team, or help build the next network adapter?</p>
