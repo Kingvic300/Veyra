@@ -10,7 +10,8 @@ import type { ExecutionMode } from '@veyra/core';
 import { SkeletonShell } from '@/components/loading';
 import { Logo } from '@/components/logo';
 import { Avatar } from '@/components/org-avatar';
-import { useNotify } from '@/components/providers';
+import { useNotify, useWallet } from '@/components/providers';
+import { WalletPicker } from '@/components/wallet-button';
 import { Button, Field, Input, Notice, PrefixInput } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { networkLabel } from '@/lib/format';
@@ -170,12 +171,38 @@ function SetupGuide({ mode }: { mode: ExecutionMode }) {
 
 const STEPS = ['Name', 'How you pay', 'Money', 'Approvals'] as const;
 const STRK = { address: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d', symbol: 'STRK', decimals: 18 };
+/**
+ * Circle's native USDC on Starknet, per developers.circle.com (USDC contract
+ * addresses) and Circle's Starknet launch post. Re-check before each release.
+ */
+const USDC_ADDRESSES: Record<string, string> = {
+  mainnet: '0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb',
+  sepolia: '0x0512feac6339ff7889822cb5aa2a86c848e9d392bb0e3e237c008674feed8343',
+};
+const EXPLORER_HOME: Record<string, string> = {
+  mainnet: process.env.NEXT_PUBLIC_EXPLORER_MAINNET ?? 'https://voyager.online',
+  sepolia: process.env.NEXT_PUBLIC_EXPLORER_SEPOLIA ?? 'https://sepolia.voyager.online',
+};
+
+type AssetPreset = 'USDC' | 'STRK' | 'custom';
+const PRESET_COPY: Record<AssetPreset, { title: string; body: string }> = {
+  USDC: { title: 'USDC', body: 'Digital dollar issued by Circle' },
+  STRK: { title: 'STRK', body: 'Starknet’s own token' },
+  custom: { title: 'Other token', body: 'Paste its contract address' },
+};
+
+/** Where to find the address for the "where the money comes from" field. */
+const ADDRESS_HELP: Partial<Record<ExecutionMode, string>> = {
+  wallet: 'Open your Starknet wallet (Ready or Braavos) and copy your account address. It starts with 0x.',
+  vault: 'Printed when the vault is deployed. Ask the developer who deployed it.',
+  'strk20-private': 'Open your wallet and copy the address of the account you set up for private payments. It starts with 0x.',
+};
 
 interface Draft {
   name: string;
   networkKey: string;
   mode: ExecutionMode;
-  assetPreset: 'STRK' | 'custom';
+  assetPreset: AssetPreset;
   assetAddress: string;
   assetSymbol: string;
   assetDecimals: number;
@@ -196,7 +223,7 @@ export default function OnboardingPage() {
     name: '',
     networkKey: '',
     mode: 'simulated',
-    assetPreset: 'custom',
+    assetPreset: 'USDC',
     assetAddress: '',
     assetSymbol: 'USDC',
     assetDecimals: 6,
@@ -205,6 +232,16 @@ export default function OnboardingPage() {
     creatorApproves: false,
   });
   const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }));
+  const { wallet } = useWallet();
+  const [picker, setPicker] = useState(false);
+  // "Connect wallet" next to the address field fills it in once the wallet connects.
+  const [fillOnConnect, setFillOnConnect] = useState(false);
+  useEffect(() => {
+    if (wallet && fillOnConnect) {
+      set({ treasury: wallet.address });
+      setFillOnConnect(false);
+    }
+  }, [wallet, fillOnConnect]);
 
   // Going live from a practice company: /onboarding?from=<practiceOrgId>
   const [fromId, setFromId] = useState<string | null>(null);
@@ -229,11 +266,18 @@ export default function OnboardingPage() {
 
   const selected = useMemo(() => networks.data?.find((n) => `${n.chain}:${n.network}` === d.networkKey), [networks.data, d.networkKey]);
   const simulated = selected?.chain === 'simulated';
+  const usdcAddress = selected ? USDC_ADDRESSES[selected.network] : undefined;
+  const presets: AssetPreset[] = usdcAddress ? ['USDC', 'STRK', 'custom'] : ['STRK', 'custom'];
+  // USDC is only offered where its address is known; elsewhere fall back to a pasted token.
+  const preset: AssetPreset = d.assetPreset === 'USDC' && !usdcAddress ? 'custom' : d.assetPreset;
+  const explorerHome = selected ? EXPLORER_HOME[selected.network] : undefined;
   const asset = simulated
     ? { address: 'sim:usdc', symbol: 'USDC', decimals: 6 }
-    : d.assetPreset === 'STRK'
+    : preset === 'STRK'
       ? STRK
-      : { address: d.assetAddress.trim(), symbol: d.assetSymbol.trim(), decimals: d.assetDecimals };
+      : preset === 'USDC'
+        ? { address: usdcAddress!, symbol: 'USDC', decimals: 6 }
+        : { address: d.assetAddress.trim(), symbol: d.assetSymbol.trim(), decimals: d.assetDecimals };
 
   const create = useMutation({
     mutationFn: async () => {
@@ -278,7 +322,7 @@ export default function OnboardingPage() {
   const canContinue = [
     d.name.trim().length > 0,
     !!selected,
-    simulated || d.assetPreset === 'STRK' || (asset.address.length > 2 && asset.symbol.length > 0),
+    simulated || preset !== 'custom' || (asset.address.length > 2 && asset.symbol.length > 0),
     d.threshold >= 1,
   ][step];
 
@@ -425,25 +469,48 @@ export default function OnboardingPage() {
               <div className="mt-8 flex flex-col gap-5">
                 {!simulated && (
                   <>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(['custom', 'STRK'] as const).map((p) => (
+                    <div className={clsx('grid gap-2', presets.length === 3 ? 'sm:grid-cols-3' : 'grid-cols-2')}>
+                      {presets.map((p) => (
                         <button
                           key={p}
                           type="button"
                           onClick={() => set({ assetPreset: p })}
                           className={clsx(
                             'rounded-control border px-4 py-3 text-left text-sm',
-                            d.assetPreset === p ? 'border-settle bg-settle-wash/50' : 'border-line bg-surface hover:border-line-strong',
+                            preset === p ? 'border-settle bg-settle-wash/50' : 'border-line bg-surface hover:border-line-strong',
                           )}
                         >
-                          <span className="block font-medium">{p === 'STRK' ? 'STRK' : 'Stablecoin'}</span>
-                          <span className="block text-[12.5px] text-ink-faint">{p === 'STRK' ? 'Starknet\'s own token' : 'For example USDC. Paste its contract address.'}</span>
+                          <span className="block font-medium">{PRESET_COPY[p].title}</span>
+                          <span className="block text-[12.5px] text-ink-faint">{PRESET_COPY[p].body}</span>
                         </button>
                       ))}
                     </div>
-                    {d.assetPreset === 'custom' && (
+                    {preset !== 'custom' && (
+                      <p className="-mt-2 text-[13px] text-ink-faint">
+                        {selected?.network === 'mainnet' ? 'Real money.' : 'Test tokens with no value.'} Veyra fills in the token details for you.
+                        {preset === 'USDC' && selected?.network !== 'mainnet' && ' Get free test USDC from faucet.circle.com (choose Starknet Sepolia).'}
+                        {preset === 'STRK' && selected?.network !== 'mainnet' && ' Get free test STRK from faucet.starknet.io.'}
+                      </p>
+                    )}
+                    {preset === 'custom' && (
                       <div className="grid gap-4 sm:grid-cols-[1fr_6rem_6rem]">
-                        <Field label="Token contract" htmlFor="assetAddress" hint="Copy it from the issuer's official page.">
+                        <Field
+                          label="Token contract"
+                          htmlFor="assetAddress"
+                          hint={
+                            <>
+                              Copy it from the token issuer’s website, or search the token’s name on{' '}
+                              {explorerHome ? (
+                                <a href={explorerHome} target="_blank" rel="noreferrer" className="font-medium text-settle hover:underline">
+                                  Voyager
+                                </a>
+                              ) : (
+                                'a Starknet block explorer'
+                              )}{' '}
+                              and copy its contract address. Symbol and decimals are shown on the same page.
+                            </>
+                          }
+                        >
                           <Input id="assetAddress" mono value={d.assetAddress} onChange={(e) => set({ assetAddress: e.target.value })} placeholder="0x…" />
                         </Field>
                         <Field label="Symbol" htmlFor="assetSymbol">
@@ -459,12 +526,32 @@ export default function OnboardingPage() {
                 <Field
                   label={d.mode === 'wallet' ? 'Your wallet address' : d.mode === 'vault' ? 'PayrollVault contract address' : d.mode === 'strk20-private' ? 'Paying account address' : 'Account name'}
                   htmlFor="treasury"
-                  hint={simulated ? 'Any name works. You can keep the default.' : 'You can skip this now. You need it before your first payout.'}
+                  hint={
+                    simulated
+                      ? 'Any name works. You can keep the default.'
+                      : `${ADDRESS_HELP[d.mode] ?? ''} You can skip this now. You need it before your first payout.`.trim()
+                  }
                 >
                   {simulated ? (
                     <PrefixInput id="treasury" prefix="sim:" lowercase value={d.treasury} onValueChange={(treasury) => set({ treasury })} placeholder="treasury" />
                   ) : (
-                    <Input id="treasury" mono value={d.treasury} onChange={(e) => set({ treasury: e.target.value })} placeholder="0x…" />
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input id="treasury" mono value={d.treasury} onChange={(e) => set({ treasury: e.target.value })} placeholder="0x…" />
+                      {d.mode !== 'vault' &&
+                        (wallet ? (
+                          <Button type="button" variant="secondary" className="shrink-0" onClick={() => set({ treasury: wallet.address })}>
+                            Use connected wallet
+                          </Button>
+                        ) : (
+                          <Button type="button" variant="secondary" className="shrink-0" onClick={() => {
+                              setFillOnConnect(true);
+                              setPicker(true);
+                            }}
+                          >
+                            Connect wallet
+                          </Button>
+                        ))}
+                    </div>
                   )}
                 </Field>
               </div>
@@ -559,6 +646,7 @@ export default function OnboardingPage() {
             </Button>
           </div>
         </form>
+        <WalletPicker open={picker} onClose={() => setPicker(false)} />
       </main>
 
       {/* Live preview */}
