@@ -103,7 +103,7 @@ export function HeroVisual() {
         <p className="flex items-center gap-2 text-[13px] font-semibold">
           <Lock className="size-3.5 text-settle" /> Stored encrypted
         </p>
-        <p className="mt-1 text-[12.5px] text-ink-soft">Names and amounts are sealed with your organisation key before they reach the database.</p>
+        <p className="mt-1 text-[12.5px] text-ink-soft">Names and amounts are sealed with your company key before they reach the database.</p>
       </div>
     </div>
   );

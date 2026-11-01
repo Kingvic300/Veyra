@@ -81,7 +81,7 @@ const FAQ = [
   ],
   [
     'Which stablecoins work?',
-    'Any ERC-20 style token on the network, such as USDC on Starknet. You enter the token contract when you set up the organisation.',
+    'Any ERC-20 style token on the network, such as USDC on Starknet. You enter the token contract when you set up your company.',
   ],
   ['Can our contractors use Veyra?', 'They do not need to. They only share a wallet address. Receipts can be sent to them as PDF or CSV.'],
 ];

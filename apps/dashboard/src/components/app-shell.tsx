@@ -42,10 +42,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (org.isError || !org.data) {
     return (
       <main className="mx-auto max-w-lg px-6 py-24">
-        <h1 className="text-2xl font-semibold">Organisation not found</h1>
+        <h1 className="text-2xl font-semibold">Company not found</h1>
         <p className="mt-2 text-ink-soft">It does not exist or you are not a member.</p>
         <Link href="/app" className="mt-6 inline-block font-medium text-settle">
-          Go to your organisations
+          Go to your companies
         </Link>
       </main>
     );

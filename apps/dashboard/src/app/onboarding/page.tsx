@@ -208,7 +208,7 @@ export default function OnboardingPage() {
           <Logo />
           {(orgs.data?.length ?? 0) > 0 && (
             <Link href="/app" className="text-sm text-ink-soft hover:text-ink">
-              Back to your organisations
+              Back to your companies
             </Link>
           )}
         </div>
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
                   : 'Your team and the people you pay see this name on payouts and receipts.'}
               </p>
               <div className="mt-8">
-                <Field label="Organisation name" htmlFor="name">
+                <Field label="Company name" htmlFor="name">
                   <Input id="name" autoFocus value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder="Lagos Dev Studio" maxLength={120} />
                 </Field>
               </div>
@@ -487,9 +487,9 @@ export default function OnboardingPage() {
         <p className="text-[13px] text-ink-faint">Preview</p>
         <div className="mt-3 rounded-panel border border-line bg-surface p-6 shadow-[0_20px_50px_-30px_rgba(19,32,27,0.45)]">
           <div className="flex items-center gap-3">
-            <Avatar name={d.name || 'New organisation'} seed={d.name || 'x'} size="lg" />
+            <Avatar name={d.name || 'New company'} seed={d.name || 'x'} size="lg" />
             <div className="min-w-0">
-              <p className="truncate text-lg font-semibold">{d.name || 'Your organisation'}</p>
+              <p className="truncate text-lg font-semibold">{d.name || 'Your company'}</p>
               <p className="flex items-center gap-1.5 text-[13px] text-ink-soft">
                 <span className={clsx('size-1.5 rounded-full', simulated ? 'bg-pending' : 'bg-settle')} />
                 {selected ? networkName(selected.chain, selected.network) : 'Choose a network'}

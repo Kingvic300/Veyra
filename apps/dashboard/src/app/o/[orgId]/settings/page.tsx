@@ -53,7 +53,7 @@ export default function SettingsPage() {
       <PageHeader title="Settings" description="Where payroll is paid from and who must approve it. Every change is saved in your history." />
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <form onSubmit={onSubmit} className="flex flex-col gap-6 rounded-panel border border-line bg-surface p-6">
-          <Field label="Organisation name" htmlFor="name">
+          <Field label="Company name" htmlFor="name">
             <Input id="name" name="name" defaultValue={o.name} required />
           </Field>
           <Field

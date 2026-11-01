@@ -61,7 +61,7 @@ const FAQ = [
     'What happens if we stop paying for the hosted plan?',
     'You keep full access to your vault on-chain, and you can export every receipt and the audit log. You can also move to the open-source version.',
   ],
-  ['Can we try it first?', 'Yes. Every account can create a sandbox organisation that runs the full flow with test funds.'],
+  ['Can we try it first?', 'Yes. Every account can create a practice company that runs the full flow with test funds.'],
 ];
 
 export default function PricingPage() {

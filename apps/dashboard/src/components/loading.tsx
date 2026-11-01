@@ -64,7 +64,7 @@ export function SkeletonPage({ label = 'Loading' }: { label?: string }) {
   );
 }
 
-/** App frame with sidebar, shown while the organisation loads. */
+/** App frame with sidebar, shown while the company loads. */
 export function SkeletonShell() {
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[264px_1fr]">
@@ -78,7 +78,7 @@ export function SkeletonShell() {
         </div>
       </aside>
       <main className="w-full px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
-        <SkeletonPage label="Loading organisation" />
+        <SkeletonPage label="Loading company" />
       </main>
     </div>
   );

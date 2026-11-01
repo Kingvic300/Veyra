@@ -155,7 +155,7 @@ const GROUPS: { title: string; lead: string; items: [string, string][] }[] = [
     title: 'Privacy and proof',
     lead: 'Salaries stay confidential and every payment can be checked.',
     items: [
-      ['Encrypted records', 'Names, emails, wallets and amounts sealed with your organisation key.'],
+      ['Encrypted records', 'Names, emails, wallets and amounts sealed with your company key.'],
       ['Verified receipts', 'Printable and CSV, tied to the settlement transaction.'],
       ['Audit log', 'A hash chain anyone in your team can re-verify.'],
       ['Notifications', 'Know when a batch needs you and when money settles.'],

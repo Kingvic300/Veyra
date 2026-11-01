@@ -33,7 +33,7 @@ export function InvitePage({ token }: { token: string }) {
     try {
       const { organisationId } = await api.invitations.accept(token);
       await qc.invalidateQueries({ queryKey: keys.orgs });
-      toast('settle', `You joined ${invite.data?.organisationName ?? 'the organisation'}`);
+      toast('settle', `You joined ${invite.data?.organisationName ?? 'the company'}`);
       router.replace(`/o/${organisationId}`);
     } catch (err) {
       toast('fail', errorMessage(err));

@@ -19,7 +19,7 @@ const CONTROLS = [
   {
     icon: Lock,
     title: 'Encrypted payroll records',
-    body: 'Contractor names, emails, payout wallets and per-person amounts are sealed with AES-256-GCM using a key unique to your organisation, itself wrapped by a server master key.',
+    body: 'Contractor names, emails, payout wallets and per-person amounts are sealed with AES-256-GCM using a key unique to your company, itself wrapped by a server master key.',
   },
   {
     icon: FileCheck,
