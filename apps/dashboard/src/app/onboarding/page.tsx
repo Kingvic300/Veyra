@@ -14,6 +14,7 @@ import { useNotify } from '@/components/providers';
 import { Button, Field, Input, Notice, PrefixInput } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { networkLabel } from '@/lib/format';
+import { site } from '@/lib/site';
 import { keys, useMe } from '@/lib/hooks';
 
 interface ModeCopy {
@@ -85,6 +86,86 @@ function approvalDefaults(chain: string): { threshold: number; creatorApproves: 
 
 function networkName(chain: string, network: string): string {
   return chain === 'simulated' ? 'Practice (no blockchain)' : networkLabel(chain, network);
+}
+
+interface SetupStep {
+  title: string;
+  body: string;
+}
+
+const VAULT_GUIDE_URL = `${site.githubUrl}/blob/main/docs/deploy-vault.md`;
+
+/** What a team must do, mostly outside Veyra, before each payment option works. */
+const SETUP_GUIDES: Record<ExecutionMode, { steps: SetupStep[]; note: string }> = {
+  wallet: {
+    steps: [
+      { title: 'Install a Starknet wallet', body: 'Ready (formerly Argent) or Braavos, as a browser extension on this computer.' },
+      { title: 'Add the token you pay in', body: 'Send it to the wallet. On Sepolia, get free test STRK from a Starknet faucet.' },
+      { title: 'Paste the wallet address below', body: 'Only this wallet can pay. You can also add it later in Settings.' },
+      { title: 'Collect the wallet addresses of the people you pay', body: 'Add them on the People page. Each payout goes straight to that address.' },
+    ],
+    note: 'Up to 100 people per payout, sent in one transaction. Keep a little STRK in the wallet for network fees.',
+  },
+  vault: {
+    steps: [
+      { title: 'Install a Starknet wallet for each approver', body: 'Ready (formerly Argent) or Braavos. Approvers sign with these wallets.' },
+      { title: 'Deploy a PayrollVault contract', body: 'Usually done by a developer. Use your approvers’ wallets and the same approval count you choose in the next step.' },
+      { title: 'Paste the vault address below', body: 'You can skip this now and add it later in Settings.' },
+      { title: 'Move money into the vault', body: 'Send the token you pay in to the vault address. Payouts come only from there.' },
+      { title: 'Ask each approver to link their wallet', body: 'They do this on the Team page, so the vault accepts their approvals.' },
+    ],
+    note: 'Up to 100 people per payout. The vault contract has not been audited yet, so use Sepolia with test tokens for now.',
+  },
+  'strk20-private': {
+    steps: [
+      { title: 'Use a wallet that supports private payments', body: 'Ready (formerly Argent) or Braavos, in a browser on this computer. Veyra asks this wallet to send each payout.' },
+      { title: 'Turn on private payments in the wallet', body: 'Follow the wallet’s steps to set up a private balance for your paying account. This is a one-time step.' },
+      { title: 'Move money into the private balance', body: 'Add the token you pay in, from the same account. This top-up is public; payouts made from it are not.' },
+      { title: 'Paste the paying account address below', body: 'The same account you set up in the wallet. Only this account can send your payouts.' },
+      { title: 'Ask the people you pay to do step 2', body: 'Each person needs a wallet with private payments turned on, or their payment cannot be sent.' },
+    ],
+    note: 'Up to 20 people per payout. Your wallet prepares each private payout itself, which can take up to a minute. This option is experimental: try it on Sepolia with test tokens first.',
+  },
+  simulated: {
+    steps: [
+      { title: 'Keep the account name below', body: 'Any name works. Your 1,000,000 test USDC is added automatically.' },
+      { title: 'Add a few people', body: 'Made-up names and details are fine. No real money moves.' },
+      { title: 'Create a payout and approve it', body: 'You can approve your own payouts here, so you can try everything alone.' },
+      { title: 'Go live when you are ready', body: 'Create a real company from this one later. Your team, approval rules and people come with you.' },
+    ],
+    note: 'Practice balances can reset when Veyra restarts. Nothing here is published anywhere.',
+  },
+};
+
+function SetupGuide({ mode }: { mode: ExecutionMode }) {
+  const guide = SETUP_GUIDES[mode];
+  return (
+    <div className="mt-6 rounded-panel border border-line bg-surface p-5">
+      <p className="text-sm font-semibold">How to set it up</p>
+      <ol className="mt-4 flex flex-col gap-4">
+        {guide.steps.map((s, i) => (
+          <li key={s.title} className="flex gap-3">
+            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-settle-wash text-[12.5px] font-semibold text-settle-strong">{i + 1}</span>
+            <div>
+              <p className="text-sm font-medium">{s.title}</p>
+              <p className="mt-0.5 text-[13px] text-ink-soft">{s.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-5 border-t border-line pt-4 text-[13px] text-ink-faint">
+        {guide.note}
+        {mode === 'vault' && (
+          <>
+            {' '}
+            <a href={VAULT_GUIDE_URL} target="_blank" rel="noreferrer" className="font-medium text-settle hover:underline">
+              Developer guide to deploying the vault
+            </a>
+          </>
+        )}
+      </p>
+    </div>
+  );
 }
 
 const STEPS = ['Name', 'How you pay', 'Money', 'Approvals'] as const;
@@ -340,6 +421,7 @@ export default function OnboardingPage() {
                     ? 'Every payout comes from the hidden balance in this Starknet account.'
                     : 'Veyra gives you 1,000,000 test USDC to practise with. It has no real value.'}
               </p>
+              <SetupGuide mode={d.mode} />
               <div className="mt-8 flex flex-col gap-5">
                 {!simulated && (
                   <>
