@@ -12,6 +12,12 @@ function originOf(url: string | undefined): string | null {
 }
 
 const apiOrigin = originOf(process.env.NEXT_PUBLIC_VEYRA_API_URL ?? 'http://localhost:4000/v1');
+/**
+ * Optional API origin (for example https://api.onrender.com) to proxy /v1 to.
+ * With NEXT_PUBLIC_VEYRA_API_URL=/v1 the browser talks only to this site, so
+ * the session cookie is first-party even when the API runs on another domain.
+ */
+const apiProxyTarget = originOf(process.env.VEYRA_API_PROXY_TARGET);
 // Loaded only after cookie consent; allow its origin for the script and its beacons.
 const analyticsOrigin = originOf(process.env.NEXT_PUBLIC_ANALYTICS_SRC);
 
@@ -41,6 +47,9 @@ const csp = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  async rewrites() {
+    return apiProxyTarget ? [{ source: '/v1/:path*', destination: `${apiProxyTarget}/v1/:path*` }] : [];
+  },
   async headers() {
     return [
       {
