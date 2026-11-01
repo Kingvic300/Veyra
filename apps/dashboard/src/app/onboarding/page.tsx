@@ -67,7 +67,7 @@ const MODES: Record<ExecutionMode, ModeCopy> = {
       { label: 'Money', value: 'A shielded balance in your account' },
       { label: 'Approvals checked by', value: 'Veyra, before each payment' },
       { label: 'Salaries visible to', value: 'Only your team' },
-      { label: 'You need', value: 'A privacy-enabled Starknet account' },
+      { label: 'You need', value: 'Ready X or Xverse, with funds shielded' },
     ],
     icon: EyeOff,
   },
@@ -119,13 +119,12 @@ const SETUP_GUIDES: Record<ExecutionMode, { steps: SetupStep[]; note: string }> 
   },
   'strk20-private': {
     steps: [
-      { title: 'Use a wallet that supports private payments', body: 'Ready (formerly Argent) or Braavos, in a browser on this computer. Veyra asks this wallet to send each payout.' },
-      { title: 'Turn on private payments in the wallet', body: 'Follow the wallet’s steps to set up a private balance for your paying account. This is a one-time step.' },
-      { title: 'Move money into the private balance', body: 'Add the token you pay in, from the same account. This top-up is public; payouts made from it are not.' },
-      { title: 'Paste the paying account address below', body: 'The same account you set up in the wallet. Only this account can send your payouts.' },
-      { title: 'Ask the people you pay to do step 2', body: 'Each person needs a wallet with private payments turned on, or their payment cannot be sent.' },
+      { title: 'Install Ready X or Xverse', body: 'These are the wallets with private balances today. The regular Ready and Braavos wallets do not have them.' },
+      { title: 'Shield the token you pay in', body: 'In the wallet, pick the token (for example USDC) and choose Shield. This moves it into your private balance and sets your account up for privacy. The amount you shield is public; payouts made from it are not.' },
+      { title: 'Paste the paying account address below', body: 'The address of the account you shielded from. Only this account can send your payouts.' },
+      { title: 'Ask the people you pay to shield once too', body: 'Each person needs Ready X or Xverse and must shield a small amount once. Until they do, their payment cannot be sent.' },
     ],
-    note: 'Up to 20 people per payout. Your wallet prepares each private payout itself, which can take up to a minute. This option is experimental: try it on Sepolia with test tokens first.',
+    note: 'Early preview. Your wallet must also let Veyra request private payouts, and wallets are still adding this. If your wallet cannot, use Pay from wallet for now. Up to 20 people per payout; each one can take up to a minute to prepare.',
   },
   simulated: {
     steps: [
@@ -195,7 +194,7 @@ const PRESET_COPY: Record<AssetPreset, { title: string; body: string }> = {
 const ADDRESS_HELP: Partial<Record<ExecutionMode, string>> = {
   wallet: 'Open your Starknet wallet (Ready or Braavos) and copy your account address. It starts with 0x.',
   vault: 'Printed when the vault is deployed. Ask the developer who deployed it.',
-  'strk20-private': 'Open your wallet and copy the address of the account you set up for private payments. It starts with 0x.',
+  'strk20-private': 'Open Ready X or Xverse and copy the address of the account you shielded from. It starts with 0x.',
 };
 
 interface Draft {
@@ -499,15 +498,16 @@ export default function OnboardingPage() {
                           htmlFor="assetAddress"
                           hint={
                             <>
-                              Copy it from the token issuer’s website, or search the token’s name on{' '}
+                              Only for tokens other than USDC and STRK. Open{' '}
                               {explorerHome ? (
                                 <a href={explorerHome} target="_blank" rel="noreferrer" className="font-medium text-settle hover:underline">
                                   Voyager
                                 </a>
                               ) : (
                                 'a Starknet block explorer'
-                              )}{' '}
-                              and copy its contract address. Symbol and decimals are shown on the same page.
+                              )}
+                              , search the token’s name (for example USDT), open it and copy the address at the top. Its symbol and decimals are on the same
+                              page. Check the token is the official one: copies with the same name exist.
                             </>
                           }
                         >
