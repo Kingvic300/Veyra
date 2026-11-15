@@ -60,10 +60,9 @@ const AUDIENCES = [
 
 const NETWORKS = [
   { name: 'Starknet', state: 'Available', note: 'PayrollVault contract, STRK20 private transfers in preview' },
-  { name: 'Stellar', state: 'Next', note: 'Soroban contracts for stablecoin payroll' },
-  { name: 'Sui and Solana', state: 'Planned', note: 'Move and Anchor adapters on the same core' },
-  { name: 'Ethereum', state: 'Planned', note: 'Smart-account workflows' },
-  { name: 'Bitcoin and Lightning', state: 'Researching', note: 'A separate design, not a contract port' },
+  { name: 'Starknet Sepolia pilots', state: 'Next', note: 'Real teams running payroll cycles on testnet' },
+  { name: 'Starknet mainnet', state: 'Planned', note: 'After the independent audit of the PayrollVault' },
+  { name: 'Other networks', state: 'Later', note: 'Considered only once Starknet is live on mainnet' },
 ];
 
 const FAQ = [
@@ -91,9 +90,9 @@ export default function LandingPage() {
     <>
       {/* Hero */}
       <section className="block-grid border-b border-line">
-        <div className="w-full grid items-center gap-14 px-5 pb-24 pt-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_1.05fr] lg:pt-24">
+        <div className="w-full grid grid-cols-1 items-center gap-14 px-5 pb-24 pt-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_1.05fr] lg:pt-24">
           <div>
-            <h1 className="text-[44px] font-semibold leading-[1.04] tracking-[-0.035em] sm:text-[58px]">
+            <h1 className="text-[38px] font-semibold leading-[1.04] tracking-[-0.035em] sm:text-[58px]">
               Payroll that settles on-chain and stays between you and your team.
             </h1>
             <p className="mt-6 max-w-[48ch] text-[17px] leading-relaxed text-ink-soft">
@@ -121,7 +120,7 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="w-full scroll-mt-20 px-5 py-24 sm:px-8 lg:px-16 xl:px-20">
+      <section id="how-it-works" className="w-full scroll-mt-20 px-5 py-16 sm:py-24 sm:px-8 lg:px-16 xl:px-20">
         <h2 className="max-w-[22ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">
           From spreadsheet to verified payment in four steps
         </h2>
@@ -130,7 +129,7 @@ export default function LandingPage() {
 
       {/* Product tour */}
       <section className="border-y border-line bg-[#f4f7f5]">
-        <div className="w-full px-5 py-24 sm:px-8 lg:px-16 xl:px-20">
+        <div className="w-full px-5 py-16 sm:py-24 sm:px-8 lg:px-16 xl:px-20">
           <h2 className="max-w-[24ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">What your finance team sees</h2>
           <p className="mt-4 max-w-[56ch] text-[16px] text-ink-soft">
             One place for the treasury, the approvals waiting on people, and the receipts for everything already paid.
@@ -142,14 +141,14 @@ export default function LandingPage() {
       </section>
 
       {/* Comparison */}
-      <section className="w-full px-5 py-24 sm:px-8 lg:px-16 xl:px-20">
+      <section className="w-full px-5 py-16 sm:py-24 sm:px-8 lg:px-16 xl:px-20">
         <h2 className="max-w-[26ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">What changes when payroll runs through Veyra</h2>
         <Comparison />
       </section>
 
       {/* Features */}
       <section className="border-t border-line bg-[#f4f7f5]">
-        <div className="w-full px-5 py-24 sm:px-8 lg:px-16 xl:px-20">
+        <div className="w-full px-5 py-16 sm:py-24 sm:px-8 lg:px-16 xl:px-20">
           <h2 className="max-w-[22ch] text-[34px] font-semibold leading-tight tracking-[-0.025em]">Everything a payroll run needs</h2>
           <FeatureGroups />
         </div>
@@ -157,9 +156,9 @@ export default function LandingPage() {
 
       {/* Honest privacy */}
       <section className="border-t border-line">
-        <div className="w-full grid gap-12 px-5 py-24 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_1.3fr]">
+        <div className="w-full grid grid-cols-1 gap-12 px-5 py-16 sm:py-24 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_1.3fr]">
           <div>
-            <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.025em]">We tell you exactly what is public</h2>
+            <h2 className="text-[28px] font-semibold leading-tight sm:text-[34px] tracking-[-0.025em]">We tell you exactly what is public</h2>
             <p className="mt-5 max-w-[46ch] text-[16px] leading-relaxed text-ink-soft">
               Blockchains are public by default. Veyra never calls a payment private unless the network and mode really hide it, and every batch shows
               a plain list of who can see what.
@@ -199,14 +198,14 @@ export default function LandingPage() {
 
       {/* Audiences */}
       <section className="border-t border-line bg-[#f4f7f5]">
-        <div className="grid w-full gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-16 xl:px-20">
+        <div className="grid grid-cols-1 w-full gap-12 px-5 py-16 sm:py-24 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-16 xl:px-20">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.025em]">Made for teams that pay people across borders</h2>
+            <h2 className="text-[28px] font-semibold leading-tight sm:text-[34px] tracking-[-0.025em]">Made for teams that pay people across borders</h2>
             <p className="mt-4 max-w-[40ch] text-[16px] leading-relaxed text-ink-soft">
               Different teams, same problem: many people, many countries, and money that should only move when the right people agree.
             </p>
           </div>
-          <ul className="grid gap-4 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {AUDIENCES.map(({ icon: Icon, title, body, setup }) => (
               <li key={title} className="flex flex-col rounded-[18px] border border-line bg-surface p-7">
                 <span className="flex size-11 items-center justify-center rounded-[12px] bg-settle-wash text-settle">
@@ -231,9 +230,9 @@ export default function LandingPage() {
 
       {/* Open source + networks */}
       <section className="border-t border-line">
-        <div className="w-full grid gap-12 px-5 py-24 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
+        <div className="w-full grid grid-cols-1 gap-12 px-5 py-16 sm:py-24 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
           <div>
-            <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.025em]">Open source, run it anywhere</h2>
+            <h2 className="text-[28px] font-semibold leading-tight sm:text-[34px] tracking-[-0.025em]">Open source, run it anywhere</h2>
             <p className="mt-5 max-w-[48ch] text-[16px] leading-relaxed text-ink-soft">
               The payroll engine, contracts, chain adapters and SDK are Apache 2.0. Self-host it, audit it, extend it. The hosted service adds managed
               infrastructure and support, not lock-in.
@@ -253,7 +252,7 @@ await veyra.batches.submit(orgId, batch.id);`}
           <div>
             <h3 className="text-lg font-semibold">Networks</h3>
             <p className="mt-1 text-[15px] text-ink-soft">
-              One payroll core, a separate adapter per chain. We add a network only when it works end to end.
+              Veyra is built for Starknet first. We add another network only after Starknet works end to end on mainnet.
             </p>
             <ul className="mt-6 divide-y divide-line rounded-panel border border-line bg-surface">
               {NETWORKS.map((n) => (
@@ -282,9 +281,9 @@ await veyra.batches.submit(orgId, batch.id);`}
 
       {/* FAQ */}
       <section className="border-t border-line">
-        <div className="grid w-full gap-10 px-5 py-24 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-16 xl:px-20">
+        <div className="grid grid-cols-1 w-full gap-10 px-5 py-16 sm:py-24 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-16 xl:px-20">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.025em]">Questions teams ask first</h2>
+            <h2 className="text-[28px] font-semibold leading-tight sm:text-[34px] tracking-[-0.025em]">Questions teams ask first</h2>
             <div className="mt-8 rounded-panel border border-line bg-surface p-6">
               <p className="font-semibold">Still deciding?</p>
               <p className="mt-1 text-[15px] text-ink-soft">Tell us how you pay your team today and we will show you how it would run in Veyra.</p>

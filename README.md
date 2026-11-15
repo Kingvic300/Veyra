@@ -1,12 +1,21 @@
 # Veyra
 
-**Open-source, multi-chain private payroll and treasury infrastructure.**
+**Open-source payroll and treasury infrastructure for Starknet.**
 
-Veyra lets an organisation prepare a payroll batch, collect approvals from the people who sign off on money, pay every contractor in one on-chain transaction, and keep a receipt anyone can verify. Contractor names, emails, wallets and per-person amounts are encrypted at rest, and every screen states plainly what is public on-chain and what is not.
+Veyra lets an organisation prepare a payroll batch, collect approvals from the people who sign off on money, pay every contractor in one Starknet transaction, and keep a receipt anyone can verify. Contractor names, emails, wallets and per-person amounts are encrypted at rest, and every screen states plainly what is public on-chain and what is not.
 
-The first network is **Starknet**: a Cairo `PayrollVault` contract enforces multi-approval on-chain, and an experimental mode pays through the **STRK20** privacy pool. Further networks plug in through a small chain-adapter interface.
+A Cairo `PayrollVault` contract enforces multi-approval on-chain, and an experimental mode pays through Starknet's **STRK20** privacy pool. The chain-specific code sits behind a small adapter interface, so the payroll core stays independent of any one network.
 
-> Status: pre-production. The contracts are tested but have **not** been independently audited. Use the sandbox or a testnet.
+> Status: pre-production. The contracts are tested (28 snforge tests) but have **not** been independently audited. Use the sandbox or Starknet Sepolia.
+
+## Try it
+
+| What | Where |
+|---|---|
+| Live app | <https://veyra-scpm.vercel.app> |
+| `PayrollVault` on Starknet Sepolia (demo, 1 of 1) | [`0x05a9ccf144e2d1545f776132ea006c6ba2baeedfb16d7a079258bdf9eab25728`](https://sepolia.voyager.online/contract/0x05a9ccf144e2d1545f776132ea006c6ba2baeedfb16d7a079258bdf9eab25728) |
+| `PayrollVault` class hash | [`0x02379628b212c4bd487cced9c0cb6dd878ed223c6f527c60c907f296b64437a3`](https://sepolia.voyager.online/class/0x02379628b212c4bd487cced9c0cb6dd878ed223c6f527c60c907f296b64437a3) |
+| Walkthrough video | _Not recorded yet_ |
 
 ## What is in this repository
 
@@ -80,7 +89,7 @@ See [docs/privacy-model.md](docs/privacy-model.md) for the full breakdown.
 - [Privacy model](docs/privacy-model.md)
 - [Deploying the PayrollVault](docs/deploy-vault.md)
 - [API reference](docs/api.md)
-- [Product and grant strategy](docs/strategy.md)
+- [Product strategy and roadmap](docs/strategy.md)
 - [Security policy](SECURITY.md) and [contributing guide](CONTRIBUTING.md)
 
 ## Licence

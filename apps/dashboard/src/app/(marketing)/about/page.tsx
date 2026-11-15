@@ -23,7 +23,7 @@ export default function AboutPage() {
       title="Payroll for the way teams are paid now"
       intro="Teams across Africa and beyond pay contractors in stablecoins every month. Most still juggle spreadsheets, screenshots of wallet addresses and a chat thread for approvals. Veyra replaces that with a workflow you can prove."
     >
-      <section className="w-full grid gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_1.4fr]">
+      <section className="w-full grid grid-cols-1 gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_1.4fr]">
         <div className="prose-veyra">
           <h2 style={{ marginTop: 0 }}>Why we started</h2>
           <p>
@@ -35,7 +35,7 @@ export default function AboutPage() {
             networks one at a time.
           </p>
         </div>
-        <ul className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2">
           {PRINCIPLES.map(([title, body]) => (
             <li key={title} className="bg-surface p-6">
               <h3 className="font-semibold">{title}</h3>
@@ -47,7 +47,7 @@ export default function AboutPage() {
       <section className="border-t border-line bg-[#f4f7f5]">
         <div className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
           <h2 className="text-[30px] font-semibold tracking-[-0.025em]">Where Veyra is going</h2>
-          <ol className="relative mt-10 grid gap-8 md:grid-cols-3 xl:grid-cols-6">
+          <ol className="relative mt-10 grid grid-cols-1 gap-8 md:grid-cols-3 xl:grid-cols-6">
             <span className="absolute left-0 right-0 top-[7px] hidden h-0.5 bg-line-strong xl:block" aria-hidden />
             {(
               [
@@ -55,8 +55,8 @@ export default function AboutPage() {
                 ['Now', 'STRK20 preview', 'Private transfers for teams with privacy-enabled wallets.', true],
                 ['Next', 'Testnet pilots', 'Five teams running real payroll cycles on Sepolia.', false],
                 ['Next', 'Independent audit', 'External review of the PayrollVault before mainnet.', false],
-                ['Later', 'Stellar', 'Soroban contracts for stablecoin payroll.', false],
-                ['Later', 'More networks', 'Sui, Solana, Ethereum, then Bitcoin and Lightning.', false],
+                ['Later', 'Starknet mainnet', 'Audited PayrollVault and private payments with real funds.', false],
+                ['Later', 'More networks', 'Considered only once Starknet is live on mainnet.', false],
               ] as const
             ).map(([when, title, body, done]) => (
               <li key={title} className="relative">

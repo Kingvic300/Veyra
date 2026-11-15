@@ -1,64 +1,54 @@
-# Product and grant strategy
+# Product strategy and roadmap
 
-This summarises the Veyra strategy (originally drafted on 31 October 2026) and records what the codebase already delivers against it.
+This records what Veyra is for, what the codebase already delivers, and what comes next.
 
 ## Product
 
-Veyra is an open-source payroll and treasury toolkit for organisations that pay distributed teams, contractors and contributors with digital assets. It lets a business fund a treasury, build payroll batches, collect approvals, execute payments through supported networks and keep verifiable records.
+Veyra is an open-source payroll and treasury toolkit for organisations that pay distributed teams, contractors and contributors with digital assets on Starknet. It lets a business fund a treasury, build payroll batches, collect approvals, execute payments and keep verifiable records.
 
 **Model:** open-source protocol (Apache 2.0) plus an optional hosted service that charges for convenience, reliability, administration and support.
 
-**Core promise:** create a batch, review it, approve it, execute it on a supported network and keep a verifiable record, keeping salary and identity details private where the chain and implementation genuinely support it.
+**Core promise:** create a batch, review it, approve it, execute it on Starknet and keep a verifiable record, keeping salary and identity details private where the chain and implementation genuinely support it.
 
 ## Who it serves
 
-Software agencies, remote-first startups, web3 teams and DAOs, development studios, and African businesses with cross-border contractor payments (the initial segment).
+African businesses with cross-border contractor payments are the first segment: they pay people in several countries, bank transfers are slow and expensive, and stablecoin payouts need approval controls and records an accountant can trust.
+
+The same workflow serves software agencies, remote-first startups, web3 teams and DAOs, and development studios.
+
+## Why Starknet
+
+- **Approvals enforced by a contract.** The Cairo `PayrollVault` checks the approval threshold and recomputes the batch hash on-chain before paying anyone, so the people who sign off on money cannot be bypassed by the Veyra API.
+- **Low fees for batch payouts.** One transaction pays every contractor in a batch.
+- **Native privacy path.** STRK20 gives a route to private transfers without leaving the network. Veyra implements it as an experimental mode and documents its limits in [privacy-model.md](privacy-model.md).
+- **Native USDC.** Contractors are paid in a stablecoin they already recognise.
 
 ## Principles
 
-- Build one shared core with chain adapters, never one app per chain.
-- Declare each chain's capabilities, including privacy; never promise universal private payments.
-- Prove one end-to-end workflow before adding networks.
-- Treat Bitcoin and Lightning as a separate design, not a contract port.
+- Prove one end-to-end workflow on Starknet before anything else.
+- State each mode's privacy plainly; never promise more privacy than the chain delivers.
+- Keep chain-specific code behind the adapter interface so the payroll core stays testable on a simulated ledger.
 
-## Network order
-
-1. **Starknet** (lead): Cairo PayrollVault, STRK20 private transfers.
-2. **Stellar**: Soroban contracts and stablecoin workflows.
-3. **Sui and Solana**: Move packages and Anchor programs.
-4. **Ethereum**: smart-account workflows.
-5. **Bitcoin and Lightning**: dedicated payment-channel design.
-
-## MVP status
+## Status
 
 | Milestone | Status |
 |---|---|
 | Monorepo, domain model, API, schema, auth, roles | Done |
 | Contractors, batches, validation, approvals, audit, dashboard | Done |
-| Starknet vault contract, adapter, transaction tracking | Done (contract tests written; pending audit) |
-| STRK20 feasibility | Researched and implemented as an experimental mode; see [privacy-model.md](privacy-model.md) |
+| Starknet vault contract, adapter, transaction tracking | Done (28 snforge tests; pending audit) |
+| STRK20 private payments | Experimental; see [privacy-model.md](privacy-model.md) |
 | Failure handling, security tests, documentation | Done for MVP scope |
+| `PayrollVault` deployed on Starknet Sepolia | Done (demo vault, 1 of 1; see README) |
 | Testnet pilot with real teams | Next |
-| Stellar adapter | After the pilot |
+| Independent audit, then Starknet mainnet | After the pilot |
 
 ## Pilot targets
 
 These are targets, not existing traction: 5 pilot businesses, 50 contractors in batches, 15 approved batches, 100+ successful payments, at least 95% completion with every failure explained, zero unresolved critical findings, two external teams testing the SDK.
 
-## Grant approach
+## Beyond Starknet
 
-Each ecosystem application must describe value specific to that ecosystem and separate deliverables. Do not bill the same work twice; disclose parallel funding.
-
-| Ecosystem | Framing |
-|---|---|
-| Starknet | Seed Grant for the Cairo vault, STRK20 integration and a testnet pilot |
-| Stellar | Soroban payroll contracts and reusable stablecoin tooling |
-| Sui | Move-native treasury and payment infrastructure for a concrete use case |
-| Solana | Open-source batch-payment SDK as a public good |
-| Ethereum | Reusable payroll/treasury primitives, privacy or security infrastructure |
-| Bitcoin | Substantive Bitcoin/Lightning payment or verification tooling |
-
-Verify every programme's current terms, eligibility and deadlines on its official page before applying.
+Other networks are out of scope until Veyra is live on Starknet mainnet. The adapter interface keeps that door open without spending effort on it now.
 
 ## Out of MVP scope
 
@@ -66,4 +56,4 @@ Fiat on/off ramps or custody, multi-jurisdiction tax calculation, a full account
 
 ## Risks to resolve
 
-Privacy compatibility of the chosen stablecoin and wallets, regulatory exposure in Nigeria and target markets, stablecoin availability per network, cross-chain complexity, open-source sustainability, and scope creep.
+Privacy compatibility of the chosen stablecoin and wallets, regulatory exposure in Nigeria and target markets, stablecoin availability, open-source sustainability, and scope creep.
