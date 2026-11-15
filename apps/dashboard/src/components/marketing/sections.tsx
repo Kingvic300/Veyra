@@ -73,7 +73,7 @@ const STEPS: { title: string; body: string; artifact: ReactNode }[] = [
 
 export function HowItWorks() {
   return (
-    <ol className="relative mt-14 grid gap-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-8">
+    <ol className="relative mt-14 grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-8">
       <span className="absolute left-[15px] right-0 top-[15px] hidden h-0.5 bg-settle/25 xl:block" aria-hidden />
       {STEPS.map((s, i) => (
         <li key={s.title} className="relative">
@@ -101,7 +101,7 @@ const ROWS: [string, string, string][] = [
 
 export function Comparison() {
   return (
-    <div className="mt-12 grid gap-5 lg:grid-cols-2">
+    <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-2">
       <div className="rounded-[18px] border border-line bg-[#f4f7f5] p-7">
         <p className="font-semibold text-ink-soft">Spreadsheet and a wallet</p>
         <ul className="mt-5 flex flex-col">
@@ -175,7 +175,7 @@ const GROUPS: { title: string; lead: string; items: [string, string][] }[] = [
 
 export function FeatureGroups() {
   return (
-    <div className="mt-12 grid gap-5 lg:grid-cols-3">
+    <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
       {GROUPS.map((g) => (
         <section key={g.title} className="flex flex-col rounded-[18px] border border-line bg-surface">
           <div className="border-b border-line p-7">
@@ -231,9 +231,9 @@ export function Faq({ items }: { items: [string, string][] }) {
 export function ClosingCta() {
   return (
     <section className="bg-ink text-white">
-      <div className="grid w-full items-center gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[1.2fr_1fr] lg:px-16 xl:px-20">
+      <div className="grid grid-cols-1 w-full items-center gap-12 px-5 py-14 sm:py-20 sm:px-8 lg:grid-cols-[1.2fr_1fr] lg:px-16 xl:px-20">
         <div>
-          <h2 className="max-w-[20ch] text-[38px] font-semibold leading-tight tracking-[-0.025em]">Run your next payroll through Veyra</h2>
+          <h2 className="max-w-[20ch] text-[30px] font-semibold leading-tight tracking-[-0.025em] sm:text-[38px]">Run your next payroll through Veyra</h2>
           <p className="mt-4 max-w-[46ch] text-[16px] text-white/70">
             Start in the sandbox with test funds, then connect a vault when you are ready to pay for real.
           </p>

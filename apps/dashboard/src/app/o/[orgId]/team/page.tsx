@@ -88,6 +88,43 @@ export default function TeamPage() {
   const self = members.data?.find((m) => m.userId === me.data?.id);
   const onChain = o.executionMode === 'vault';
 
+  // Role and wallet render in their own columns on wide screens and under the person on phones.
+  const roleCell = (m: Member) =>
+    manage && m.id !== self?.id ? (
+      <Select
+        value={m.role}
+        onChange={(e) => update.mutate({ m, patch: { role: e.target.value as Role } })}
+        className="h-9 w-36"
+        aria-label={`Role for ${m.name}`}
+      >
+        {ROLES.map((r) => (
+          <option key={r} value={r}>
+            {label(r)}
+          </option>
+        ))}
+      </Select>
+    ) : (
+      <span title={ROLE_COPY[m.role]}>{label(m.role)}</span>
+    );
+  const walletCell = (m: Member) => (
+    <>
+      {m.walletAddress ? (
+        <Hash value={m.walletAddress} href={explorerUrl(o.chain, o.network, 'contract', m.walletAddress)} />
+      ) : (
+        <span className="text-[13px] text-ink-faint">Not linked</span>
+      )}
+      {m.id === self?.id && wallet && m.walletAddress && BigInt(m.walletAddress) !== BigInt(wallet.address) && (
+        <button
+          type="button"
+          className="ml-2 text-[12.5px] font-medium text-settle hover:underline"
+          onClick={() => update.mutate({ m, patch: { walletAddress: wallet.address } })}
+        >
+          Use connected wallet
+        </button>
+      )}
+    </>
+  );
+
   return (
     <>
       <PageHeader
@@ -119,9 +156,13 @@ export default function TeamPage() {
             <thead>
               <tr>
                 <th>Person</th>
-                <th>Role</th>
-                <th>{onChain ? 'Approver wallet' : 'Wallet'}</th>
-                {manage && <th className="sr-only">Actions</th>}
+                <th className="hidden sm:table-cell">Role</th>
+                <th className="hidden md:table-cell">{onChain ? 'Approver wallet' : 'Wallet'}</th>
+                {manage && (
+                  <th>
+                    <span className="sr-only">Actions</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -132,44 +173,23 @@ export default function TeamPage() {
                       {m.name}
                       {m.id === self?.id && <span className="ml-2 text-[12.5px] font-normal text-ink-faint">You</span>}
                     </span>
-                    <span className="block text-[13px] text-ink-soft">{m.email}</span>
+                    <span className="block break-all text-[13px] text-ink-soft">{m.email}</span>
+                    {/* Smaller screens: role and wallet, folded under the person. */}
+                    <span className="mt-2 flex flex-wrap items-center gap-2 md:hidden">
+                      <span className="sm:hidden">
+                        {roleCell(m)}
+                      </span>
+                      {walletCell(m)}
+                    </span>
                   </td>
-                  <td>
-                    {manage && m.id !== self?.id ? (
-                      <Select
-                        value={m.role}
-                        onChange={(e) => update.mutate({ m, patch: { role: e.target.value as Role } })}
-                        className="h-9 w-36"
-                        aria-label={`Role for ${m.name}`}
-                      >
-                        {ROLES.map((r) => (
-                          <option key={r} value={r}>
-                            {label(r)}
-                          </option>
-                        ))}
-                      </Select>
-                    ) : (
-                      <span title={ROLE_COPY[m.role]}>{label(m.role)}</span>
-                    )}
+                  <td className="hidden sm:table-cell">
+                    {roleCell(m)}
                   </td>
-                  <td>
-                    {m.walletAddress ? (
-                      <Hash value={m.walletAddress} href={explorerUrl(o.chain, o.network, 'contract', m.walletAddress)} />
-                    ) : (
-                      <span className="text-[13px] text-ink-faint">Not linked</span>
-                    )}
-                    {m.id === self?.id && wallet && m.walletAddress && BigInt(m.walletAddress) !== BigInt(wallet.address) && (
-                      <button
-                        type="button"
-                        className="ml-2 text-[12.5px] font-medium text-settle hover:underline"
-                        onClick={() => update.mutate({ m, patch: { walletAddress: wallet.address } })}
-                      >
-                        Use connected wallet
-                      </button>
-                    )}
+                  <td className="hidden md:table-cell">
+                    {walletCell(m)}
                   </td>
                   {manage && (
-                    <td className="text-right">
+                    <td className="text-right align-top sm:align-middle">
                       {m.id !== self?.id && (
                         <Button size="sm" variant="ghost" onClick={() => remove.mutate(m)}>
                           Remove
@@ -189,8 +209,8 @@ export default function TeamPage() {
           <ul className="divide-y divide-line">
             {invites.data.map((i) => (
               <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3.5 text-sm">
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium">{i.email}</span>
+                <span className="min-w-0 flex-1 basis-56">
+                  <span className="block break-all font-medium">{i.email}</span>
                   <span className="block text-[13px] text-ink-faint">
                     Invited as {label(i.role).toLowerCase()} · link expires {new Date(i.expiresAt).toLocaleDateString()}
                   </span>
@@ -222,7 +242,7 @@ export default function TeamPage() {
         </Panel>
       )}
 
-      <dl className="mt-8 grid gap-4 text-sm sm:grid-cols-2">
+      <dl className="mt-8 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         {ROLES.map((r) => (
           <div key={r} className="rounded-control border border-line bg-surface px-4 py-3">
             <dt className="font-medium">{label(r)}</dt>

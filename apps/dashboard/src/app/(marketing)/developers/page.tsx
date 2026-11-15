@@ -23,7 +23,7 @@ export default function DevelopersPage() {
       title="Build on the payroll core"
       intro="Everything that runs the hosted service is in the open: the API, the contracts, the chain adapters and the SDK. Integrate with it, self-host it, or add a network."
     >
-      <section className="w-full grid gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
+      <section className="w-full grid grid-cols-1 gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
         <div>
           <h2 className="text-[26px] font-semibold tracking-[-0.02em]">Run it locally</h2>
           <p className="mt-2 text-ink-soft">Postgres and Redis in Docker, the API on port 4000 and the dashboard on port 3000.</p>
@@ -81,8 +81,9 @@ const receipt = await veyra.batches.receipt(orgId, batch.id);`}</Code>
             Full API reference
           </a>
         </div>
-        <div className="mt-6 overflow-x-auto rounded-panel border border-line bg-surface">
-          <table className="w-full min-w-[640px] text-sm">
+        {/* Phones: each row stacks method and path, then the description. */}
+        <div className="relative mt-6 overflow-x-auto rounded-panel border border-line bg-surface">
+          <table className="w-full text-sm md:min-w-[640px]">
             <tbody>
               {(
                 [
@@ -95,16 +96,16 @@ const receipt = await veyra.batches.receipt(orgId, batch.id);`}</Code>
                   ['GET', '/v1/organisations/:org/audit/verify', 'Recompute the audit hash chain'],
                 ] as const
               ).map(([m, path, what]) => (
-                <tr key={path} className="border-t border-line first:border-t-0">
-                  <td className="w-20 px-5 py-3">
+                <tr key={path} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1 border-t border-line px-5 py-3.5 first:border-t-0 md:table-row md:p-0">
+                  <td className="md:w-20 md:px-5 md:py-3">
                     <span
                       className={`rounded px-2 py-0.5 font-mono text-[12px] font-medium ${m === 'GET' ? 'bg-wash text-ink-soft' : 'bg-settle-wash text-settle-strong'}`}
                     >
                       {m}
                     </span>
                   </td>
-                  <td className="px-5 py-3 font-mono text-[13px]">{path}</td>
-                  <td className="px-5 py-3 text-ink-soft">{what}</td>
+                  <td className="break-all font-mono text-[13px] md:break-normal md:px-5 md:py-3">{path}</td>
+                  <td className="col-span-2 text-ink-soft md:px-5 md:py-3">{what}</td>
                 </tr>
               ))}
             </tbody>
@@ -117,7 +118,7 @@ const receipt = await veyra.batches.receipt(orgId, batch.id);`}</Code>
           <h2 className="text-[26px] font-semibold tracking-[-0.02em]">Packages</h2>
           <ul className="mt-6 divide-y divide-line rounded-panel border border-line bg-surface">
             {PACKAGES.map(([name, body]) => (
-              <li key={name} className="grid gap-1 px-5 py-4 sm:grid-cols-[16rem_1fr]">
+              <li key={name} className="grid grid-cols-1 gap-1 px-5 py-4 sm:grid-cols-[16rem_1fr]">
                 <code className="font-mono text-[13.5px] font-medium">{name}</code>
                 <span className="text-[15px] text-ink-soft">{body}</span>
               </li>
@@ -126,7 +127,7 @@ const receipt = await veyra.batches.receipt(orgId, batch.id);`}</Code>
         </div>
       </section>
 
-      <section className="w-full grid gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
+      <section className="w-full grid grid-cols-1 gap-12 px-5 py-16 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
         <div>
           <h2 className="text-[26px] font-semibold tracking-[-0.02em]">How a vault payout flows</h2>
           <ol className="mt-5 flex list-decimal flex-col gap-2 pl-5 text-[15px] text-ink-soft">

@@ -168,6 +168,55 @@ function SetupGuide({ mode }: { mode: ExecutionMode }) {
   );
 }
 
+const TOKEN_FIELDS = [
+  { label: 'Token contract', body: 'The token’s address on Starknet. It starts with 0x and is about 66 characters long. Veyra pays from and to this exact token.' },
+  { label: 'Symbol', body: 'The short ticker shown next to amounts, for example USDT. It is only a label.' },
+  { label: 'Decimals', body: 'How many decimal places the token uses. Most dollar tokens use 6; most other tokens use 18. A wrong value makes every amount off by a factor of 10 or more.' },
+];
+
+function CustomTokenHelp({ explorerHome }: { explorerHome?: string }) {
+  const steps = [
+    <>
+      Open{' '}
+      {explorerHome ? (
+        <a href={explorerHome} target="_blank" rel="noreferrer" className="font-medium text-settle hover:underline">
+          Voyager
+        </a>
+      ) : (
+        'a Starknet block explorer'
+      )}{' '}
+      and search the token’s name, for example USDT.
+    </>,
+    <>Open the token’s page. Copy the address at the top into Token contract.</>,
+    <>On the same page, find its symbol and decimals and copy them into the two boxes.</>,
+  ];
+  return (
+    <div className="rounded-panel border border-line bg-surface p-5">
+      <p className="text-sm font-semibold">Paying in another token</p>
+      <p className="mt-1 text-[13px] text-ink-soft">Only needed for tokens other than USDC and STRK. Takes about a minute.</p>
+      <ol className="mt-4 flex flex-col gap-3">
+        {steps.map((step, i) => (
+          <li key={i} className="flex gap-3">
+            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-settle-wash text-[12.5px] font-semibold text-settle-strong">{i + 1}</span>
+            <p className="pt-0.5 text-[13px] text-ink-soft">{step}</p>
+          </li>
+        ))}
+      </ol>
+      <dl className="mt-5 flex flex-col gap-3 border-t border-line pt-4 text-[13px]">
+        {TOKEN_FIELDS.map((f) => (
+          <div key={f.label}>
+            <dt className="font-medium text-ink">{f.label}</dt>
+            <dd className="mt-0.5 text-ink-soft">{f.body}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-4 rounded-control bg-pending-wash px-3 py-2 text-[13px] text-pending">
+        Fake copies of popular tokens use the same name. Check the token is verified on the explorer, or get the address from the issuer’s website.
+      </p>
+    </div>
+  );
+}
+
 const STEPS = ['Name', 'How you pay', 'Money', 'Approvals'] as const;
 const STRK = { address: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d', symbol: 'STRK', decimals: 18 };
 /**
@@ -326,7 +375,7 @@ export default function OnboardingPage() {
   ][step];
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_400px] xl:grid-cols-[minmax(0,1fr)_480px]">
+    <div className="grid grid-cols-1 min-h-dvh lg:grid-cols-[minmax(0,1fr)_400px] xl:grid-cols-[minmax(0,1fr)_480px]">
       <main className="flex flex-col px-6 py-8 sm:px-12 lg:px-16">
         <div className="flex items-center justify-between">
           <Logo />
@@ -383,7 +432,7 @@ export default function OnboardingPage() {
                   <Notice tone="fail">This server has no payment options turned on. Ask your administrator to set one up.</Notice>
                 </div>
               )}
-              <div role="radiogroup" aria-label="Payment option" className="mt-8 grid gap-4 md:grid-cols-2">
+              <div role="radiogroup" aria-label="Payment option" className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
                 {options?.flatMap((n) =>
                   n.executionModes.map((m) => {
                     const key = `${n.chain}:${n.network}`;
@@ -492,33 +541,19 @@ export default function OnboardingPage() {
                       </p>
                     )}
                     {preset === 'custom' && (
-                      <div className="grid gap-4 sm:grid-cols-[1fr_6rem_6rem]">
-                        <Field
-                          label="Token contract"
-                          htmlFor="assetAddress"
-                          hint={
-                            <>
-                              Only for tokens other than USDC and STRK. Open{' '}
-                              {explorerHome ? (
-                                <a href={explorerHome} target="_blank" rel="noreferrer" className="font-medium text-settle hover:underline">
-                                  Voyager
-                                </a>
-                              ) : (
-                                'a Starknet block explorer'
-                              )}
-                              , search the token’s name (for example USDT), open it and copy the address at the top. Its symbol and decimals are on the same
-                              page. Check the token is the official one: copies with the same name exist.
-                            </>
-                          }
-                        >
-                          <Input id="assetAddress" mono value={d.assetAddress} onChange={(e) => set({ assetAddress: e.target.value })} placeholder="0x…" />
-                        </Field>
-                        <Field label="Symbol" htmlFor="assetSymbol">
-                          <Input id="assetSymbol" value={d.assetSymbol} onChange={(e) => set({ assetSymbol: e.target.value })} />
-                        </Field>
-                        <Field label="Decimals" htmlFor="assetDecimals">
-                          <Input id="assetDecimals" type="number" min={0} max={36} value={d.assetDecimals} onChange={(e) => set({ assetDecimals: Number(e.target.value) })} />
-                        </Field>
+                      <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_6rem_6rem]">
+                          <Field label="Token contract" htmlFor="assetAddress">
+                            <Input id="assetAddress" mono value={d.assetAddress} onChange={(e) => set({ assetAddress: e.target.value })} placeholder="0x…" />
+                          </Field>
+                          <Field label="Symbol" htmlFor="assetSymbol">
+                            <Input id="assetSymbol" value={d.assetSymbol} onChange={(e) => set({ assetSymbol: e.target.value })} placeholder="USDT" />
+                          </Field>
+                          <Field label="Decimals" htmlFor="assetDecimals">
+                            <Input id="assetDecimals" type="number" min={0} max={36} value={d.assetDecimals} onChange={(e) => set({ assetDecimals: Number(e.target.value) })} />
+                          </Field>
+                        </div>
+                        <CustomTokenHelp explorerHome={explorerHome} />
                       </div>
                     )}
                   </>

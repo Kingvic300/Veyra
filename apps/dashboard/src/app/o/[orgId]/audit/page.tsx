@@ -59,7 +59,10 @@ export default function AuditPage() {
         <Panel padded={false}>
           <ol>
             {rows.map((e) => (
-              <li key={e.id} className="grid grid-cols-[3.5rem_1fr_auto] items-baseline gap-4 border-t border-line px-5 py-3 text-sm first:border-t-0">
+              <li
+                key={e.id}
+                className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-baseline gap-x-3 gap-y-0.5 border-t border-line px-4 py-3 text-sm first:border-t-0 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-5"
+              >
                 <span className="text-[12.5px] tabular-nums text-ink-faint">{e.seq}</span>
                 <span className="min-w-0">
                   <span className="font-medium">{ACTION_COPY[e.action] ?? e.action}</span>
@@ -73,7 +76,7 @@ export default function AuditPage() {
                     {shortHash(e.hash, 10, 6)}
                   </span>
                 </span>
-                <span className="text-[13px] text-ink-soft">{date(e.createdAt, true)}</span>
+                <span className="col-start-2 text-[12.5px] text-ink-soft sm:col-start-auto sm:text-[13px]">{date(e.createdAt, true)}</span>
               </li>
             ))}
           </ol>

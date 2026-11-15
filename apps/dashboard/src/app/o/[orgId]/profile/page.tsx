@@ -18,7 +18,7 @@ const ROLE_NAME: Record<string, string> = { OWNER: 'Owner', ADMIN: 'Admin', APPR
 /** One settings section: title and explanation on the left, the controls on the right. */
 function Section({ title, description, children }: { title: string; description: ReactNode; children: ReactNode }) {
   return (
-    <section className="grid gap-4 border-t border-line py-8 first:border-t-0 md:grid-cols-[280px_minmax(0,1fr)] md:gap-12">
+    <section className="grid grid-cols-1 gap-4 border-t border-line py-8 first:border-t-0 md:grid-cols-[280px_minmax(0,1fr)] md:gap-12">
       <div>
         <h2 className="text-[15px] font-semibold">{title}</h2>
         <p className="mt-1 text-sm text-ink-soft">{description}</p>
@@ -76,18 +76,18 @@ export default function ProfilePage() {
   return (
     <div>
       {/* Identity header */}
-      <header className="flex flex-wrap items-center gap-5 rounded-panel border border-line bg-surface p-6">
-        <span className="[&>span]:size-16 [&>span]:text-xl">
+      <header className="flex flex-wrap items-center gap-4 rounded-panel border border-line bg-surface p-5 sm:gap-5 sm:p-6">
+        <span className="[&>span]:size-14 [&>span]:text-lg sm:[&>span]:size-16 sm:[&>span]:text-xl">
           <Avatar name={draftName || user.name} seed={user.id} size="lg" round solid />
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[26px] font-semibold tracking-[-0.02em]">{user.name}</h1>
-          <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-ink-soft">
+          <h1 className="break-words text-[22px] font-semibold leading-tight tracking-[-0.02em] sm:truncate sm:text-[26px]">{user.name}</h1>
+          <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-sm text-ink-soft">
             <Mail className="size-3.5 shrink-0" aria-hidden />
-            {user.email}
+            <span className="truncate">{user.email}</span>
           </p>
         </div>
-        <dl className="flex gap-8 text-sm">
+        <dl className="flex w-full gap-8 text-sm sm:w-auto">
           <div>
             <dt className="text-ink-faint">Companies</dt>
             <dd className="mt-0.5 font-semibold">{orgs.data?.length ?? '—'}</dd>

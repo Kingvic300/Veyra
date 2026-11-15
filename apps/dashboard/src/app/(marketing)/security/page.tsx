@@ -45,7 +45,7 @@ export default function SecurityPage() {
       intro="Veyra is built so the most important rules hold even if our servers are compromised: money moves only when your approvers sign, and only to the recipients they saw."
     >
       <section className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
-        <div className="grid gap-px overflow-hidden rounded-panel border border-line bg-line md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-panel border border-line bg-line md:grid-cols-2 xl:grid-cols-3">
           {CONTROLS.map(({ icon: Icon, title, body }) => (
             <div key={title} className="bg-surface p-7">
               <span className="flex size-10 items-center justify-center rounded-[10px] bg-settle-wash text-settle">
@@ -59,7 +59,7 @@ export default function SecurityPage() {
       </section>
 
       <section className="border-y border-line bg-[#f4f7f5]">
-        <div className="w-full grid gap-12 px-5 py-20 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
+        <div className="w-full grid grid-cols-1 gap-12 px-5 py-14 sm:py-20 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-2">
           <div>
             <h2 className="text-[30px] font-semibold tracking-[-0.025em]">What stays visible</h2>
             <div className="prose-veyra">
@@ -98,7 +98,7 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      <section className="w-full px-5 py-20 sm:px-8 lg:px-16 xl:px-20">
+      <section className="w-full px-5 py-14 sm:py-20 sm:px-8 lg:px-16 xl:px-20">
         <h2 className="text-[30px] font-semibold tracking-[-0.025em]">Report a vulnerability</h2>
         <p className="mt-3 max-w-[60ch] text-[16px] text-ink-soft">
           Email{' '}

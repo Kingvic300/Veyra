@@ -39,22 +39,30 @@ export function HeroVisual() {
           </span>
         </div>
 
-        <ol className="grid grid-cols-5 gap-0 px-5 pb-4 pt-5">
+        {/* Phones: a vertical rail with label and detail side by side. Wider: five columns. */}
+        <ol className="flex flex-col gap-3 px-5 pb-4 pt-5 sm:grid sm:grid-cols-5 sm:gap-0">
           {STOPS.map((s, i) => (
-            <li key={s.label} className="relative">
+            <li key={s.label} className="relative flex items-start gap-3 sm:block">
               {i < STOPS.length - 1 && (
-                <span className="absolute left-5 right-0 top-[9px] h-0.5 bg-line">
-                  <span className="rail-segment-done block size-full bg-settle" style={{ animationDelay: `${200 + i * 260}ms` }} />
-                </span>
+                <>
+                  <span className="absolute left-5 right-0 top-[9px] hidden h-0.5 bg-line sm:block">
+                    <span className="rail-segment-done block size-full bg-settle" style={{ animationDelay: `${200 + i * 260}ms` }} />
+                  </span>
+                  <span className="absolute -bottom-3 left-[9px] top-5 w-0.5 bg-line sm:hidden">
+                    <span className="rail-segment-down block size-full bg-settle" style={{ animationDelay: `${200 + i * 260}ms` }} />
+                  </span>
+                </>
               )}
               <span
-                className="rail-dot relative z-10 flex size-5 items-center justify-center rounded-full bg-settle text-white"
+                className="rail-dot relative z-10 flex size-5 shrink-0 items-center justify-center rounded-full bg-settle text-white"
                 style={{ animationDelay: `${i * 260}ms` }}
               >
                 <Check className="size-3" strokeWidth={3} />
               </span>
-              <p className="mt-2.5 text-[12.5px] font-semibold">{s.label}</p>
-              <p className="pr-2 text-[11.5px] leading-snug text-ink-faint">{s.detail}</p>
+              <span className="flex min-w-0 flex-1 items-baseline justify-between gap-3 sm:block">
+                <span className="text-[12.5px] font-semibold sm:mt-2.5 sm:block">{s.label}</span>
+                <span className="text-right text-[11.5px] leading-snug text-ink-faint sm:block sm:pr-2 sm:text-left">{s.detail}</span>
+              </span>
             </li>
           ))}
         </ol>
@@ -64,18 +72,18 @@ export function HeroVisual() {
             {ROWS.map(([name, cc, amt]) => (
               <tr key={name} className="border-t border-line">
                 <td className="px-5 py-2.5 font-medium">{name}</td>
-                <td className="py-2.5 text-ink-faint">{cc}</td>
-                <td className="py-2.5 font-mono text-[11.5px] text-ink-faint">0x04a1…{cc.toLowerCase()}9e</td>
-                <td className="px-5 py-2.5 text-right font-medium">{amt} USDC</td>
+                <td className="hidden py-2.5 text-ink-faint sm:table-cell">{cc}</td>
+                <td className="hidden py-2.5 font-mono text-[11.5px] text-ink-faint sm:table-cell">0x04a1…{cc.toLowerCase()}9e</td>
+                <td className="whitespace-nowrap px-5 py-2.5 text-right font-medium">{amt} USDC</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="border-t border-line bg-wash/60">
-              <td className="px-5 py-3 font-semibold" colSpan={3}>
-                Total
-              </td>
-              <td className="px-5 py-3 text-right font-semibold">7,950.50 USDC</td>
+              <td className="px-5 py-3 font-semibold">Total</td>
+              <td className="hidden sm:table-cell" />
+              <td className="hidden sm:table-cell" />
+              <td className="whitespace-nowrap px-5 py-3 text-right font-semibold">7,950.50 USDC</td>
             </tr>
           </tfoot>
         </table>

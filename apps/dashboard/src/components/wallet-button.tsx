@@ -66,7 +66,7 @@ export function WalletButton({ expected }: { expected?: string | null }) {
         <ChevronDown className="size-3.5 text-ink-faint" aria-hidden />
       </button>
       {open && (
-        <PopoverPanel className="right-0 top-11 w-80">
+        <PopoverPanel className="right-0 top-11 w-[min(20rem,calc(100vw-2.5rem))]">
           <div className="p-4">
             <p className="text-[12.5px] text-ink-faint">Connected with {wallet.name}</p>
             <Hash value={wallet.address} className="mt-2" />

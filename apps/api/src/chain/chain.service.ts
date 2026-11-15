@@ -54,7 +54,9 @@ export class ChainService {
     const out: NetworkOption[] = [];
     if (this.config.enableSimulatedChain) out.push({ chain: 'simulated', network: 'local', executionModes: ['simulated'] });
     for (const network of Object.keys(this.config.starknetRpc)) {
-      const modes: ExecutionMode[] = ['wallet', 'vault'];
+      const modes: ExecutionMode[] = ['wallet'];
+      // PayrollVault is unaudited: keep it off mainnet unless explicitly allowed.
+      if (network !== 'mainnet' || this.config.enableMainnetVault) modes.push('vault');
       if (this.config.enableStrk20 && network !== 'devnet') modes.push('strk20-private');
       out.push({ chain: 'starknet', network, executionModes: modes });
     }

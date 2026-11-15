@@ -51,7 +51,7 @@ export default function BatchesPage() {
         }
       />
 
-      <section className="mb-6 grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: 'Waiting for approval', value: s ? `${s.awaitingApproval.count}` : null, note: s ? amount(s.awaitingApproval.total, s.asset) : '', tone: 'text-pending' },
           { label: 'Approved, ready to pay', value: s ? `${s.readyToPay.count}` : null, note: s ? amount(s.readyToPay.total, s.asset) : '', tone: 'text-ink' },
@@ -83,7 +83,7 @@ export default function BatchesPage() {
                 aria-selected={filter === f}
                 onClick={() => setFilter(f)}
                 className={clsx(
-                  'flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px]',
+                  'flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] pointer-coarse:py-2',
                   filter === f ? 'border-ink bg-ink text-white' : 'border-line bg-surface text-ink-soft hover:border-line-strong',
                 )}
               >
@@ -93,14 +93,14 @@ export default function BatchesPage() {
             );
           })}
         </div>
-        <label className="relative">
+        <label className="relative w-full sm:w-auto">
           <span className="sr-only">Search payouts</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" aria-hidden />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name"
-            className="h-9 w-56 rounded-control border border-line bg-surface pl-9 pr-3 text-sm placeholder:text-ink-faint focus:border-settle focus:outline-none"
+            className="h-10 w-full rounded-control border border-line bg-surface pl-9 pr-3 sm:h-9 sm:w-56 text-sm placeholder:text-ink-faint focus:border-settle focus:outline-none"
           />
         </label>
       </div>
@@ -121,17 +121,17 @@ export default function BatchesPage() {
         />
       ) : (
         <Panel padded={false}>
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[12.5px] text-ink-faint">
                   <th className="px-5 py-2.5 font-medium">Payout</th>
-                  <th className="px-5 py-2.5 font-medium">Status</th>
-                  <th className="px-5 py-2.5 font-medium">Prepared by</th>
-                  <th className="px-5 py-2.5 text-right font-medium">Payments</th>
+                  <th className="hidden px-5 py-2.5 font-medium sm:table-cell">Status</th>
+                  <th className="hidden px-5 py-2.5 font-medium lg:table-cell">Prepared by</th>
+                  <th className="hidden px-5 py-2.5 text-right font-medium md:table-cell">Payments</th>
                   <th className="px-5 py-2.5 text-right font-medium">Total</th>
-                  <th className="px-5 py-2.5 font-medium">Created</th>
-                  <th className="px-5 py-2.5 font-medium">Paid</th>
+                  <th className="hidden px-5 py-2.5 font-medium md:table-cell">Created</th>
+                  <th className="hidden px-5 py-2.5 font-medium md:table-cell">Paid</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,11 +144,21 @@ export default function BatchesPage() {
                           {b.title}
                         </Link>
                         <span className="block font-mono text-[11.5px] text-ink-faint">{shortHash(b.chainBatchId, 8, 4)}</span>
+                        {/* Smaller screens: the hidden columns, folded under the name. */}
+                        <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-ink-soft md:hidden">
+                          <span className="sm:hidden">
+                            <StatusPill status={b.status} />
+                          </span>
+                          <span>
+                            {b.itemCount} {b.itemCount === 1 ? 'payment' : 'payments'}
+                          </span>
+                          <span>{b.completedAt ? `Paid ${date(b.completedAt)}` : `Created ${date(b.createdAt)}`}</span>
+                        </span>
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="hidden px-5 py-3 sm:table-cell">
                         <StatusPill status={b.status} />
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="hidden px-5 py-3 lg:table-cell">
                         {by ? (
                           <span className="flex items-center gap-2">
                             <Avatar name={by} seed={b.createdBy} size="sm" round />
@@ -158,10 +168,10 @@ export default function BatchesPage() {
                           <span className="text-ink-faint">Former member</span>
                         )}
                       </td>
-                      <td className="px-5 py-3 text-right">{b.itemCount}</td>
-                      <td className="px-5 py-3 text-right font-medium">{amount(b.total, b.asset)}</td>
-                      <td className="px-5 py-3 text-ink-soft">{date(b.createdAt)}</td>
-                      <td className="px-5 py-3 text-ink-soft">{b.completedAt ? date(b.completedAt) : ''}</td>
+                      <td className="hidden px-5 py-3 text-right md:table-cell">{b.itemCount}</td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right align-top font-medium md:align-middle">{amount(b.total, b.asset)}</td>
+                      <td className="hidden px-5 py-3 text-ink-soft md:table-cell">{date(b.createdAt)}</td>
+                      <td className="hidden px-5 py-3 text-ink-soft md:table-cell">{b.completedAt ? date(b.completedAt) : ''}</td>
                     </tr>
                   );
                 })}

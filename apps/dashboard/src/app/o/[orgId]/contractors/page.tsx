@@ -121,7 +121,7 @@ export default function ContractorsPage() {
         </Panel>
       )}
 
-      <section className="mb-6 grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-3">
+      <section className="mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-3">
         <div className="bg-surface p-5">
           <p className="text-sm text-ink-soft">People you pay</p>
           <p className="mt-1.5 text-[22px] font-semibold">{contractors.data ? contractors.data.filter((c) => c.active).length : '—'}</p>
@@ -144,14 +144,14 @@ export default function ContractorsPage() {
       </section>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <label className="relative">
+        <label className="relative w-full sm:w-auto">
           <span className="sr-only">Search people</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" aria-hidden />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email or country"
-            className="h-9 w-72 rounded-control border border-line bg-surface pl-9 pr-3 text-sm placeholder:text-ink-faint focus:border-settle focus:outline-none"
+            className="h-10 w-full rounded-control border border-line bg-surface pl-9 pr-3 text-sm placeholder:text-ink-faint focus:border-settle focus:outline-none sm:h-9 sm:w-72"
           />
         </label>
         <label className="flex items-center gap-2 text-sm text-ink-soft">
@@ -173,11 +173,15 @@ export default function ContractorsPage() {
             <thead>
               <tr>
                 <th>Person</th>
-                <th>Country</th>
-                <th>Wallet</th>
-                <th className="text-right">Paid (12 months)</th>
-                <th>Last paid</th>
-                {canWrite && <th className="sr-only">Actions</th>}
+                <th className="hidden md:table-cell">Country</th>
+                <th className="hidden md:table-cell">Wallet</th>
+                <th className="hidden text-right sm:table-cell">Paid (12 months)</th>
+                <th className="hidden lg:table-cell">Last paid</th>
+                {canWrite && (
+                  <th className="hidden sm:table-cell">
+                    <span className="sr-only">Actions</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -194,18 +198,44 @@ export default function ContractorsPage() {
                         {c.email && <span className="block truncate text-[13px] text-ink-soft">{c.email}</span>}
                       </span>
                     </span>
+                    {/* Smaller screens: the hidden columns, folded under the person. */}
+                    <span className="ml-12 mt-2 flex flex-col items-start gap-1.5 text-[13px] text-ink-soft md:hidden">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Hash value={c.payoutAddress} href={explorerUrl(o.chain, o.network, 'contract', c.payoutAddress)} />
+                        {c.country && <span>{countryName(c.country)}</span>}
+                      </span>
+                      <span className="sm:hidden">
+                        {earnings.get(c.id) ? (
+                          <>
+                            <span className="font-medium text-ink">{amount(earnings.get(c.id)!.total, o.asset)}</span> paid in 12 months
+                          </>
+                        ) : (
+                          'Not paid yet'
+                        )}
+                      </span>
+                      {canWrite && (
+                        <span className="-ml-3 flex gap-1 sm:hidden">
+                          <Button size="sm" variant="ghost" onClick={() => setEditing(c)}>
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => archive.mutate(c)}>
+                            {c.active ? 'Archive' : 'Restore'}
+                          </Button>
+                        </span>
+                      )}
+                    </span>
                   </td>
-                  <td>{c.country ? countryName(c.country) : ''}</td>
-                  <td>
+                  <td className="hidden md:table-cell">{c.country ? countryName(c.country) : ''}</td>
+                  <td className="hidden md:table-cell">
                     <Hash value={c.payoutAddress} href={explorerUrl(o.chain, o.network, 'contract', c.payoutAddress)} />
                   </td>
-                  <td className="text-right font-medium">{earnings.get(c.id) ? amount(earnings.get(c.id)!.total, o.asset) : <span className="font-normal text-ink-faint">Not paid yet</span>}</td>
-                  <td className="text-ink-soft">
+                  <td className="hidden whitespace-nowrap text-right font-medium sm:table-cell">{earnings.get(c.id) ? amount(earnings.get(c.id)!.total, o.asset) : <span className="font-normal text-ink-faint">Not paid yet</span>}</td>
+                  <td className="hidden text-ink-soft lg:table-cell">
                     {earnings.get(c.id)?.lastPaidAt ? date(earnings.get(c.id)!.lastPaidAt) : ''}
                     {earnings.get(c.id) && <span className="block text-[12px] text-ink-faint">{earnings.get(c.id)!.payments} payments</span>}
                   </td>
                   {canWrite && (
-                    <td className="text-right">
+                    <td className="hidden text-right sm:table-cell">
                       <div className="flex justify-end gap-1">
                         <Button size="sm" variant="ghost" onClick={() => setEditing(c)}>
                           Edit
@@ -235,7 +265,7 @@ export default function ContractorsPage() {
           <Field label="Full name" htmlFor="name">
             <Input id="name" name="name" required defaultValue={current?.name ?? prefill?.name} />
           </Field>
-          <div className="grid gap-4 sm:grid-cols-[1fr_6rem]">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_6rem]">
             <Field label="Email (optional)" htmlFor="email">
               <Input id="email" name="email" type="email" defaultValue={current?.email ?? prefill?.email ?? ''} />
             </Field>

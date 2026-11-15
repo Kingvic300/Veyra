@@ -20,6 +20,8 @@ const envSchema = z.object({
   DASHBOARD_ORIGIN: z.string().default('http://localhost:3000'),
   ENABLE_SIMULATED_CHAIN: bool,
   ENABLE_STRK20: bool,
+  /** Offer vault mode on mainnet. Keep false until PayrollVault is audited. */
+  ENABLE_MAINNET_VAULT: bool,
   STARKNET_RPC_SEPOLIA: optionalUrl,
   STARKNET_RPC_MAINNET: optionalUrl,
   STARKNET_RPC_DEVNET: optionalUrl,
@@ -54,6 +56,7 @@ export type AppConfig = {
   dashboardOrigin: string[];
   enableSimulatedChain: boolean;
   enableStrk20: boolean;
+  enableMainnetVault: boolean;
   starknetRpc: Record<string, string>;
   txPollIntervalMs: number;
   txPollTimeoutMs: number;
@@ -90,6 +93,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       .filter(Boolean),
     enableSimulatedChain: e.ENABLE_SIMULATED_CHAIN,
     enableStrk20: e.ENABLE_STRK20,
+    enableMainnetVault: e.ENABLE_MAINNET_VAULT,
     starknetRpc,
     appUrl: (e.APP_URL ?? e.DASHBOARD_ORIGIN.split(',')[0]!.trim()).replace(/\/+$/, ''),
     brevoApiKey: e.BREVO_API_KEY,

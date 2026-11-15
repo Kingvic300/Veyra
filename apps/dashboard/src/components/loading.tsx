@@ -47,8 +47,8 @@ export function SkeletonPage({ label = 'Loading' }: { label?: string }) {
   return (
     <div role="status" aria-label={label}>
       <Bar className="h-4 w-24" />
-      <Bar className="mt-3 h-8 w-72" />
-      <div className="mt-10 grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-3">
+      <Bar className="mt-3 h-8 w-full max-w-72" />
+      <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-3">
         {[0, 1, 2].map((i) => (
           <div key={i} className="bg-surface p-6">
             <Bar className="h-3.5 w-28" />
@@ -56,7 +56,7 @@ export function SkeletonPage({ label = 'Loading' }: { label?: string }) {
           </div>
         ))}
       </div>
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
         <SkeletonRows rows={3} />
         <SkeletonRows rows={2} />
       </div>

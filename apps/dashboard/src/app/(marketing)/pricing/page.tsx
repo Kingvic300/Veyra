@@ -71,7 +71,7 @@ export default function PricingPage() {
       intro="Self-host for free, or let us run Veyra for you. Every plan includes the sandbox so you can test the full flow first."
     >
       <section className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {PLANS.map((p) => (
             <div
               key={p.name}
@@ -120,7 +120,7 @@ export default function PricingPage() {
       </section>
 
       <section className="border-t border-line">
-        <div className="w-full grid gap-10 px-5 py-20 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_2fr]">
+        <div className="w-full grid grid-cols-1 gap-10 px-5 py-14 sm:py-20 sm:px-8 lg:px-16 xl:px-20 lg:grid-cols-[1fr_2fr]">
           <h2 className="text-[30px] font-semibold tracking-[-0.025em]">Questions</h2>
           <dl className="divide-y divide-line border-y border-line">
             {FAQ.map(([q, a]) => (

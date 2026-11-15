@@ -39,7 +39,7 @@ const MONTHS: [string, number][] = [
 
 function OverviewMock() {
   return (
-    <div className="grid gap-4 p-5 md:grid-cols-[1fr_1.2fr]">
+    <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-[1fr_1.2fr]">
       <div className="rounded-panel border border-line p-4">
         <p className="text-[12.5px] text-ink-faint">Treasury balance</p>
         <p className="mt-1 text-[26px] font-semibold tracking-[-0.02em]">48,210.75 USDC</p>
@@ -98,7 +98,7 @@ function OverviewMock() {
 
 function ApprovalsMock() {
   return (
-    <div className="grid gap-4 p-5 md:grid-cols-[1.3fr_1fr]">
+    <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-[1.3fr_1fr]">
       <div className="rounded-panel border border-line">
         <div className="border-b border-line px-4 py-3 text-[13px] font-semibold">November 2026 contractors</div>
         {[
@@ -188,7 +188,7 @@ export function ProductTour() {
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('overview');
   const active = TABS.find((t) => t.id === tab)!;
   return (
-    <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
       <div role="tablist" aria-label="Product tour" className="flex flex-col gap-2">
         {TABS.map((t) => {
           const Icon = t.icon;

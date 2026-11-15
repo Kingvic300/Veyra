@@ -139,8 +139,8 @@ const FOOTER = [
 export function MarketingFooter() {
   return (
     <footer className="border-t border-line bg-[#f4f7f5]">
-      <div className="w-full grid gap-10 px-5 py-14 sm:px-8 lg:px-16 xl:px-20 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-        <div>
+      <div className="grid w-full grid-cols-2 gap-x-6 gap-y-10 px-5 py-14 sm:grid-cols-3 sm:px-8 md:grid-cols-[1.4fr_repeat(3,1fr)] lg:px-16 xl:px-20">
+        <div className="col-span-2 sm:col-span-3 md:col-span-1">
           <Logo />
           <p className="mt-4 max-w-[34ch] text-sm text-ink-soft">{site.tagline}</p>
           <a

@@ -294,19 +294,19 @@ export default function BatchPage() {
           <Link href={`/o/${orgId}/batches`} className="text-sm text-ink-soft hover:text-ink">
             Payouts
           </Link>
-          <h1 className="mt-1 text-[28px] font-semibold">{b.title}</h1>
+          <h1 className="mt-1 text-[24px] font-semibold sm:text-[28px]">{b.title}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-soft">
             <StatusPill status={b.status} />
             <span>Created {date(b.createdAt)}</span>
           </div>
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <p className="text-sm text-ink-soft">{b.itemCount} {b.itemCount === 1 ? 'payment' : 'payments'}</p>
-          <p className="text-[30px] font-semibold leading-tight tracking-[-0.02em]">{amount(b.total, b.asset)}</p>
+          <p className="text-[26px] font-semibold leading-tight tracking-[-0.02em] sm:text-[30px]">{amount(b.total, b.asset)}</p>
         </div>
       </div>
 
-      <section className="rounded-panel border border-line bg-surface p-6" aria-label="Payment progress">
+      <section className="rounded-panel border border-line bg-surface p-5 sm:p-6" aria-label="Payment progress">
         {next && (
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5" aria-live="polite">
             <div className="min-w-0">
@@ -379,7 +379,7 @@ export default function BatchPage() {
         </div>
       )}
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-8">
           <Panel
             title="Payments"
@@ -406,9 +406,9 @@ export default function BatchPage() {
                 <thead>
                   <tr>
                     <th>Person</th>
-                    <th>Wallet</th>
+                    <th className="hidden sm:table-cell">Wallet</th>
                     <th className="text-right">Amount</th>
-                    <th>Status</th>
+                    <th className="hidden sm:table-cell">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -416,17 +416,18 @@ export default function BatchPage() {
                     const p = b.payments?.find((x) => x.itemId === item.id);
                     return (
                       <tr key={item.id}>
-                        <td className="font-medium">{item.contractorName}</td>
-                        <td>{item.recipient && <Hash value={item.recipient} />}</td>
-                        <td className="text-right font-medium">{amount(item.amount, b.asset)}</td>
-                        <td>
-                          {p ? (
-                            <Pill tone={p.status === 'CONFIRMED' ? 'settle' : p.status === 'FAILED' ? 'fail' : 'pending'}>
-                              {p.status === 'CONFIRMED' ? (p.verified ? 'Paid, verified' : 'Paid') : p.status === 'FAILED' ? 'Not paid' : 'Settling'}
-                            </Pill>
-                          ) : (
-                            <span className="text-[13px] text-ink-faint">Not sent</span>
-                          )}
+                        <td className="font-medium">
+                          {item.contractorName}
+                          {/* Phones: wallet and status, folded under the name. */}
+                          <span className="mt-1.5 flex flex-wrap items-center gap-2 font-normal sm:hidden">
+                            {item.recipient && <Hash value={item.recipient} />}
+                            <PaymentPill payment={p} />
+                          </span>
+                        </td>
+                        <td className="hidden sm:table-cell">{item.recipient && <Hash value={item.recipient} />}</td>
+                        <td className="whitespace-nowrap text-right align-top font-medium sm:align-middle">{amount(item.amount, b.asset)}</td>
+                        <td className="hidden sm:table-cell">
+                          <PaymentPill payment={p} />
                         </td>
                       </tr>
                     );
@@ -581,5 +582,15 @@ export default function BatchPage() {
         </div>
       </Dialog>
     </>
+  );
+}
+
+/** Where one payment stands, or "Not sent" before the payout runs. */
+function PaymentPill({ payment: p }: { payment?: { status: string; verified?: boolean } }) {
+  if (!p) return <span className="text-[13px] text-ink-faint">Not sent</span>;
+  return (
+    <Pill tone={p.status === 'CONFIRMED' ? 'settle' : p.status === 'FAILED' ? 'fail' : 'pending'}>
+      {p.status === 'CONFIRMED' ? (p.verified ? 'Paid, verified' : 'Paid') : p.status === 'FAILED' ? 'Not paid' : 'Settling'}
+    </Pill>
   );
 }

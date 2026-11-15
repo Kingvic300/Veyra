@@ -84,6 +84,18 @@
   transform-origin: left;
   animation: rail-fill 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+@keyframes rail-fill-down {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.rail-segment-down {
+  transform-origin: top;
+  animation: rail-fill-down 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
 @keyframes rail-dot {
   from {
     transform: scale(0.4);
@@ -193,6 +205,7 @@
   .loader-rail,
   .skeleton,
   .rail-segment-done,
+  .rail-segment-down,
   .dot-live {
     animation: none;
   }
@@ -290,4 +303,16 @@ input:-webkit-autofill {
 input:autofill.bg-wash,
 input:-webkit-autofill.bg-wash {
   box-shadow: inset 0 0 0 1000px var(--color-wash);
+}
+
+/* Phones: wide legal tables scroll inside themselves, long code wraps. */
+@media (max-width: 639px) {
+  .prose-veyra table {
+    position: relative;
+    display: block;
+    overflow-x: auto;
+  }
+  .prose-veyra code {
+    overflow-wrap: anywhere;
+  }
 }

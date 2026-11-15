@@ -51,7 +51,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" description="Where payroll is paid from and who must approve it. Every change is saved in your history." />
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <form onSubmit={onSubmit} className="flex flex-col gap-6 rounded-panel border border-line bg-surface p-6">
           <Field label="Company name" htmlFor="name">
             <Input id="name" name="name" defaultValue={o.name} required />
@@ -67,7 +67,7 @@ export default function SettingsPage() {
               <Input id="treasury" name="treasury" mono defaultValue={o.treasuryAddress ?? ''} placeholder="0x…" />
             )}
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Approvals needed" htmlFor="threshold" hint={o.executionMode === 'vault' ? 'Must match the number set in your vault contract.' : undefined}>
               <Input id="threshold" name="threshold" type="number" min={1} max={20} defaultValue={o.approvalPolicy.threshold} required />
             </Field>

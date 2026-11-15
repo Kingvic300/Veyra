@@ -179,7 +179,7 @@ export default function OverviewPage() {
       {/* Headline figures */}
       {hasHistory && (
         <section
-          className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2 xl:grid-cols-4"
+          className="grid grid-cols-1 gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2 xl:grid-cols-4"
           aria-label="Key figures"
         >
           <Figure label="Paid this month" loading={!s}>
@@ -351,15 +351,15 @@ export default function OverviewPage() {
           {recent.length === 0 ? (
             <p className="px-5 py-8 text-sm text-ink-soft">Paid payouts and their receipts will be listed here.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[12.5px] text-ink-faint">
                     <th className="px-5 py-2.5 font-medium">Payout</th>
-                    <th className="px-5 py-2.5 font-medium">Paid on</th>
-                    <th className="px-5 py-2.5 text-right font-medium">Payments</th>
+                    <th className="hidden px-5 py-2.5 font-medium sm:table-cell">Paid on</th>
+                    <th className="hidden px-5 py-2.5 text-right font-medium sm:table-cell">Payments</th>
                     <th className="px-5 py-2.5 text-right font-medium">Total</th>
-                    <th className="px-5 py-2.5 font-medium">
+                    <th className="hidden px-5 py-2.5 font-medium sm:table-cell">
                       <span className="sr-only">Receipt</span>
                     </th>
                   </tr>
@@ -371,11 +371,21 @@ export default function OverviewPage() {
                         <Link href={`${base}/batches/${b.id}`} className="font-medium hover:text-settle">
                           {b.title}
                         </Link>
+                        {/* Phones: the hidden columns, folded under the name. */}
+                        <span className="mt-0.5 flex flex-wrap gap-x-2 text-[12.5px] text-ink-soft sm:hidden">
+                          <span>{date(b.completedAt)}</span>
+                          <span>
+                            {b.itemCount} {b.itemCount === 1 ? 'payment' : 'payments'}
+                          </span>
+                          <Link href={`${base}/batches/${b.id}/receipt`} className="font-medium text-settle">
+                            Receipt
+                          </Link>
+                        </span>
                       </td>
-                      <td className="px-5 py-3 text-ink-soft">{date(b.completedAt)}</td>
-                      <td className="px-5 py-3 text-right">{b.itemCount}</td>
-                      <td className="px-5 py-3 text-right font-medium">{amount(b.total, b.asset)}</td>
-                      <td className="px-5 py-3 text-right">
+                      <td className="hidden px-5 py-3 text-ink-soft sm:table-cell">{date(b.completedAt)}</td>
+                      <td className="hidden px-5 py-3 text-right sm:table-cell">{b.itemCount}</td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right align-top font-medium sm:align-middle">{amount(b.total, b.asset)}</td>
+                      <td className="hidden px-5 py-3 text-right sm:table-cell">
                         <Link href={`${base}/batches/${b.id}/receipt`} className="text-[13px] font-medium text-settle hover:underline">
                           Receipt
                         </Link>

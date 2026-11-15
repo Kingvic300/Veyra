@@ -98,15 +98,24 @@ export function BatchEditor({
       </Field>
 
       <div className="rounded-panel border border-line bg-surface">
-        <div className="grid grid-cols-[1fr_11rem_2.5rem] gap-3 border-b border-line px-5 py-2.5 text-[12.5px] font-medium text-ink-faint">
+        <div className="hidden grid-cols-[minmax(0,1fr)_11rem_2.5rem] gap-3 border-b border-line px-5 py-2.5 text-[12.5px] font-medium text-ink-faint sm:grid">
           <span>Person</span>
           <span>Amount ({asset.symbol})</span>
           <span className="sr-only">Remove</span>
         </div>
+        {/* Phones: person on its own line, amount and remove button under it. */}
         <ul>
           {rows.map((r, i) => (
-            <li key={r.key} className="grid grid-cols-[1fr_11rem_2.5rem] items-center gap-3 border-b border-line px-5 py-2.5 last:border-b-0">
-              <Select value={r.contractorId} onChange={(e) => update(r.key, { contractorId: e.target.value })} aria-label={`Person for row ${i + 1}`}>
+            <li
+              key={r.key}
+              className="grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_11rem_2.5rem] sm:px-5 sm:py-2.5"
+            >
+              <Select
+                className="col-span-2 sm:col-span-1"
+                value={r.contractorId}
+                onChange={(e) => update(r.key, { contractorId: e.target.value })}
+                aria-label={`Person for row ${i + 1}`}
+              >
                 <option value="">Choose a person</option>
                 {contractors.data?.map((c) => (
                   <option key={c.id} value={c.id} disabled={used.has(c.id) && c.id !== r.contractorId}>
@@ -127,7 +136,7 @@ export function BatchEditor({
               <button
                 type="button"
                 onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.key !== r.key) : [{ key: nextKey++, contractorId: '', amount: '' }]))}
-                className="flex size-9 items-center justify-center rounded-control text-ink-faint hover:bg-wash hover:text-fail"
+                className="flex size-10 items-center justify-center rounded-control text-ink-faint hover:bg-wash hover:text-fail sm:size-9"
                 aria-label={`Remove row ${i + 1}`}
               >
                 <Trash2 className="size-4" />
@@ -135,7 +144,7 @@ export function BatchEditor({
             </li>
           ))}
         </ul>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-wash/60 px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-wash/60 px-4 py-3 sm:px-5">
           <div className="flex gap-2">
             <Button type="button" variant="ghost" size="sm" icon={<Plus className="size-4" />} onClick={() => setRows((rs) => [...rs, { key: nextKey++, contractorId: '', amount: '' }])}>
               Add row

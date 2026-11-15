@@ -17,7 +17,7 @@ export default function ContactPage() {
   return (
     <MarketingPage title="Talk to the Veyra team" intro="Pick the inbox that fits. A person reads every message.">
       <section className="w-full px-5 py-16 sm:px-8 lg:px-16 xl:px-20">
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {CHANNELS.map(({ icon: Icon, title, body, email }) => (
             <li key={title} className="flex gap-4 rounded-panel border border-line bg-surface p-6">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-wash text-ink-soft">

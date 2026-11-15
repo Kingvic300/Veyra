@@ -152,7 +152,7 @@ export function AuthForm({ mode, inviteToken }: { mode: 'login' | 'register'; in
 /** Two-column frame shared by the sign-in, registration and password screens. */
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
+    <main className="grid grid-cols-1 min-h-dvh lg:grid-cols-[1.1fr_1fr]">
       <section className="block-grid relative hidden flex-col border-r border-line bg-[#f4f7f5] p-12 lg:flex">
         <Link href="/" aria-label="Veyra home">
           <Logo />

@@ -272,7 +272,7 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
 
 export function Table({ children }: { children: ReactNode }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table className="w-full border-collapse text-sm [&_td]:border-t [&_td]:border-line [&_td]:px-5 [&_td]:py-3 [&_th]:px-5 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-[12.5px] [&_th]:font-medium [&_th]:text-ink-faint">
         {children}
       </table>
@@ -282,12 +282,12 @@ export function Table({ children }: { children: ReactNode }) {
 
 export function PageHeader({ title, description, actions }: { title: string; description?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
       <div>
-        <h1 className="text-[28px] font-semibold">{title}</h1>
+        <h1 className="text-[24px] font-semibold sm:text-[28px]">{title}</h1>
         {description && <p className="mt-1.5 max-w-[64ch] text-[15px] text-ink-soft">{description}</p>}
       </div>
-      {actions && <div className="flex gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }

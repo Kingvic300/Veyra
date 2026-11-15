@@ -34,8 +34,8 @@ export default function ReceiptPage() {
         </Button>
       </div>
 
-      <article className="rounded-panel border border-line bg-surface p-8 print:border-0 print:p-0 sm:p-12">
-        <header className="flex flex-wrap items-start justify-between gap-6 border-b border-line pb-8">
+      <article className="rounded-panel border border-line bg-surface p-5 print:border-0 print:p-0 sm:p-12">
+        <header className="flex flex-wrap items-start justify-between gap-6 border-b border-line pb-6 sm:pb-8">
           <div>
             <Logo />
             <h1 className="mt-8 text-[26px] font-semibold">Payroll receipt</h1>
@@ -59,30 +59,33 @@ export default function ReceiptPage() {
           <thead>
             <tr className="text-left text-[12.5px] text-ink-faint">
               <th className="pb-2 font-medium">Paid to</th>
-              <th className="pb-2 font-medium">Wallet</th>
+              <th className="hidden pb-2 font-medium sm:table-cell print:table-cell">Wallet</th>
               <th className="pb-2 text-right font-medium">Amount</th>
             </tr>
           </thead>
           <tbody>
             {r.items.map((i) => (
               <tr key={i.recipient} className="border-t border-line">
-                <td className="py-3 font-medium">{i.contractorName}</td>
-                <td className="py-3 font-mono text-[12px] text-ink-soft break-all">{i.recipient}</td>
-                <td className="py-3 text-right font-medium">{amount(i.amount, b.asset)}</td>
+                <td className="py-3 pr-3 font-medium">
+                  {i.contractorName}
+                  {/* Phones: the wallet, folded under the name. */}
+                  <span className="mt-0.5 block break-all font-mono text-[11.5px] font-normal text-ink-soft sm:hidden print:hidden">{i.recipient}</span>
+                </td>
+                <td className="hidden break-all py-3 pr-3 font-mono text-[12px] text-ink-soft sm:table-cell print:table-cell">{i.recipient}</td>
+                <td className="whitespace-nowrap py-3 text-right align-top font-medium sm:align-middle">{amount(i.amount, b.asset)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-ink">
-              <td className="pt-3 font-semibold" colSpan={2}>
-                Total
-              </td>
-              <td className="pt-3 text-right text-lg font-semibold">{amount(b.total, b.asset)}</td>
+              <td className="pt-3 font-semibold">Total</td>
+              <td className="hidden sm:table-cell print:table-cell" />
+              <td className="whitespace-nowrap pt-3 text-right text-lg font-semibold">{amount(b.total, b.asset)}</td>
             </tr>
           </tfoot>
         </table>
 
-        <section className="mt-10 grid gap-8 sm:grid-cols-2">
+        <section className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2">
           <div>
             <h2 className="font-semibold">Approved by</h2>
             <ul className="mt-2 text-sm">
@@ -113,7 +116,7 @@ export default function ReceiptPage() {
 
         <section className="mt-10 border-t border-line pt-6 text-[12.5px]">
           <h2 className="mb-3 text-sm font-semibold">References</h2>
-          <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[12rem_1fr]">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[12rem_1fr]">
             {tx && (
               <>
                 <dt className="text-ink-soft">Payment transaction</dt>
